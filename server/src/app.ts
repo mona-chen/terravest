@@ -7,12 +7,12 @@ import { healthRouter } from './routes/health.routes';
 import authRoutes from './routes/auth.routes';
 import portalRoutes from './routes/portal.routes';
 import adminRoutes from './routes/admin.routes';
+import { requestIdMiddleware } from './middleware/requestId';
 
 const app = express();
-const app = express();
 
-// Basic security and parsing
 app.use(helmet());
+app.use(requestIdMiddleware);
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(corsMiddleware);
