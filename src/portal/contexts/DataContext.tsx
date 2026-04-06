@@ -1,54 +1,119 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
-import type { 
-  Document, 
-  Notification, 
-  PerformanceData, 
-  Message,
-  Company 
-} from '../types';
-import { store } from '../data/store';
+import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
+import { portalApi } from '@/lib/api';
+import type { Document, Notification, Message, Company, PortfolioHolding, Opportunity, CapitalCall } from '@/lib/api/types';
 
 interface DataContextType {
   documents: Document[];
   notifications: Notification[];
   unreadCount: number;
-  performance: PerformanceData[];
   messages: Message[];
   companies: Company[];
-  markNotificationRead: (id: string) => void;
-  markAllNotificationsRead: () => void;
+  portfolio: PortfolioHolding[];
+  opportunities: Opportunity[];
+  capitalCalls: CapitalCall[];
+  isLoading: {
+    documents: boolean;
+    notifications: boolean;
+    messages: boolean;
+    companies: boolean;
+    portfolio: boolean;
+    opportunities: boolean;
+    capitalCalls: boolean;
+  };
+  markNotificationRead: (id: string) => Promise<void>;
+  markAllNotificationsRead: () => Promise<void>;
   deleteNotification: (id: string) => void;
   markMessageRead: (id: string) => void;
+  refreshData: () => Promise<void>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export function DataProvider({ children }: { children: ReactNode }) {
-  const [documents] = useState<Document[]>(store.getDocuments());
-  const [notifications, setNotifications] = useState<Notification[]>(store.getNotifications());
-  const [performance] = useState<PerformanceData[]>(store.getPerformance());
-  const [messages, setMessages] = useState<Message[]>(store.getMessages());
-  const [companies] = useState<Company[]>(store.getCompanies());
+  const [documents, setDocuments] = useState<Document[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [portfolio, setPortfolio] = useState<PortfolioHolding[]>([]);
+  const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
+  const [capitalCalls, setCapitalCalls] = useState<CapitalCall[]>([]);
+  
+  const [isLoading, setIsLoading] = useState({
+    documents: true,
+    notifications: true,
+    messages: true,
+    companies: true,
+    portfolio: true,
+    opportunities: true,
+    capitalCalls: true,
+  });
+
+  const fetchData = useCallback(async () => {
+    setIsLoading({
+      documents: true,
+      notifications: true,
+      messages: true,
+      companies: true,
+      portfolio: true,
+      opportunities: true,
+      capitalCalls: true,
+    });
+
+    try {
+      const [docsRes, notifRes, msgRes, compRes, portRes, oppRes, ccRes] = await Promise.allSettled([
+        portalApi.getDocuments(),
+        portalApi.getNotifications(),
+        portalApi.getMessages(),
+        portalApi.getCompanies(),
+        portalApi.getPortfolio(),
+        portalApi.getOpportunities(),
+        portalApi.getCapitalCalls(),
+      ]);
+
+      if (docsRes.status === 'fulfilled') setDocuments(docsRes.value.data);
+      if (notifRes.status === 'fulfilled') setNotifications(notifRes.value.data);
+      if (msgRes.status === 'fulfilled') setMessages(msgRes.value.data);
+      if (compRes.status === 'fulfilled') setCompanies(compRes.value.data);
+      if (portRes.status === 'fulfilled') setPortfolio(portRes.value.data);
+      if (oppRes.status === 'fulfilled') setOpportunities(oppRes.value.data);
+      if (ccRes.status === 'fulfilled') setCapitalCalls(ccRes.value.data);
+    } finally {
+      setIsLoading({
+        documents: false,
+        notifications: false,
+        messages: false,
+        companies: false,
+        portfolio: false,
+        opportunities: false,
+        capitalCalls: false,
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  const markNotificationRead = useCallback((id: string) => {
-    const updated = notifications.map(n => 
-      n.id === id ? { ...n, read: true } : n
-    );
-    store.setNotifications(updated);
-    setNotifications(updated);
+  const markNotificationRead = useCallback(async (id: string) => {
+    try {
+      await portalApi.markNotificationRead(id);
+      const updated = notifications.map(n => 
+        n.id === id ? { ...n, read: true } : n
+      );
+      setNotifications(updated);
+    } catch {
+    }
   }, [notifications]);
 
-  const markAllNotificationsRead = useCallback(() => {
+  const markAllNotificationsRead = useCallback(async () => {
     const updated = notifications.map(n => ({ ...n, read: true }));
-    store.setNotifications(updated);
     setNotifications(updated);
   }, [notifications]);
 
   const deleteNotification = useCallback((id: string) => {
     const updated = notifications.filter(n => n.id !== id);
-    store.setNotifications(updated);
     setNotifications(updated);
   }, [notifications]);
 
@@ -56,9 +121,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const updated = messages.map(m => 
       m.id === id ? { ...m, read: true } : m
     );
-    store.setMessages(updated);
     setMessages(updated);
   }, [messages]);
+
+  const refreshData = useCallback(async () => {
+    await fetchData();
+  }, [fetchData]);
 
   return (
     <DataContext.Provider
@@ -66,13 +134,17 @@ export function DataProvider({ children }: { children: ReactNode }) {
         documents,
         notifications,
         unreadCount,
-        performance,
         messages,
         companies,
+        portfolio,
+        opportunities,
+        capitalCalls,
+        isLoading,
         markNotificationRead,
         markAllNotificationsRead,
         deleteNotification,
         markMessageRead,
+        refreshData,
       }}
     >
       {children}
