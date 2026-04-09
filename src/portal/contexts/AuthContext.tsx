@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
 import { authApi } from '@/lib/api';
-import type { User } from '@/lib/api/types';
+import type { User, ProfileUpdate } from '@/lib/api/types';
 
 interface AuthContextType {
   user: User | null;
@@ -8,7 +8,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
-  updateProfile: (updates: Partial<User>) => Promise<{ success: boolean; error?: string }>;
+  updateProfile: (updates: ProfileUpdate) => Promise<{ success: boolean; error?: string }>;
   changePassword: () => Promise<{ success: boolean; error?: string }>;
 }
 
@@ -67,7 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const updateProfile = useCallback(async (updates: Partial<User>): Promise<{ success: boolean; error?: string }> => {
+  const updateProfile = useCallback(async (_updates: ProfileUpdate): Promise<{ success: boolean; error?: string }> => {
     if (!user) return { success: false, error: 'Not authenticated' };
     
     setIsLoading(true);

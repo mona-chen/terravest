@@ -18,8 +18,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(corsMiddleware);
 
 app.use(healthRouter);
-app.use('/api/auth', authLimiter, authRoutes);
-app.use('/api/portal', generalLimiter, portalRoutes);
+app.use('/api/auth', authLimiter as any, authRoutes);
+app.use('/api/portal', generalLimiter as any, portalRoutes);
 app.use('/api/admin', adminRoutes);
 
 app.use(errorHandler);

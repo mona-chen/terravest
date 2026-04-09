@@ -180,7 +180,7 @@ export default function AdminLayout() {
                 className="flex items-center gap-3 p-1.5 rounded-lg hover:bg-[#1A1A1A] transition-colors"
               >
                 <img 
-                  src={user?.avatar} 
+                  src={user?.investor?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || '')}&background=8FB8A3&color=fff`} 
                   alt={user?.name}
                   className="w-8 h-8 rounded-full"
                 />

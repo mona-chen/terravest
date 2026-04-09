@@ -22,8 +22,8 @@ export async function getDashboard(req: Request, res: Response) {
     },
   });
 
-  const totalAUM = investors.reduce((sum, inv) => 
-    sum + inv.portfolioHoldings.reduce((hSum, h) => hSum + Number(h.value), 0), 0
+  const totalAUM = investors.reduce((sum: number, inv: any) => 
+    sum + inv.portfolioHoldings.reduce((hSum: number, h: any) => hSum + Number(h.value), 0), 0
   );
 
   return res.status(200).json({

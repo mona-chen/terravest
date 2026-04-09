@@ -49,7 +49,7 @@ export default function DashboardPage() {
   const totalValue = companies.reduce((sum, c) => sum + c.valuation, 0);
   const totalRevenue = companies.reduce((sum, c) => sum + c.revenue, 0);
   const avgGrowth = companies.length > 0 
-    ? companies.reduce((sum, c) => sum + c.metrics.revenueGrowth, 0) / companies.length 
+    ? companies.reduce((sum, c) => sum + (c.metrics?.revenueGrowth ?? 0), 0) / companies.length 
     : 0;
   
   const latestPerformance = performance[performance.length - 1];
@@ -162,7 +162,7 @@ export default function DashboardPage() {
             <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center">
               <Target className="w-5 h-5 text-purple-400" />
             </div>
-            <span className="text-sm text-[#8FB8A3]">{companies.filter(c => c.status === 'active').length} active</span>
+            <span className="text-sm text-[#8FB8A3]">{companies.filter(c => c.status === 'ACTIVE').length} active</span>
           </div>
           <p className="text-white/50 text-sm mb-1">Portfolio Companies</p>
           <p className="text-2xl font-semibold text-white">{companies.length}</p>
@@ -377,8 +377,8 @@ export default function DashboardPage() {
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-medium text-white">{formatCurrency(company.valuation)}</p>
-                  <p className={`text-xs ${company.metrics.revenueGrowth >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    +{company.metrics.revenueGrowth}%
+                  <p className={`text-xs ${(company.metrics?.revenueGrowth ?? 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                    +{company.metrics?.revenueGrowth ?? 0}%
                   </p>
                 </div>
               </NavLink>
@@ -408,12 +408,12 @@ export default function DashboardPage() {
               recentNotifications.map((notification) => (
                 <div key={notification.id} className="flex items-start gap-3 p-3 bg-[#1A1A1A] rounded-lg">
                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                    notification.type === 'success' ? 'bg-green-500/10' :
-                    notification.type === 'warning' ? 'bg-yellow-500/10' :
+                    notification.type === 'SUCCESS' ? 'bg-green-500/10' :
+                    notification.type === 'WARNING' ? 'bg-yellow-500/10' :
                     'bg-blue-500/10'
                   }`}>
-                    {notification.type === 'success' ? <TrendingUp className="w-4 h-4 text-green-400" /> :
-                     notification.type === 'warning' ? <Bell className="w-4 h-4 text-yellow-400" /> :
+                    {notification.type === 'SUCCESS' ? <TrendingUp className="w-4 h-4 text-green-400" /> :
+                     notification.type === 'WARNING' ? <Bell className="w-4 h-4 text-yellow-400" /> :
                      <FileText className="w-4 h-4 text-blue-400" />
                     }
                   </div>

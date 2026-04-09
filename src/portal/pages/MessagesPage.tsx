@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
 import { useData } from '../contexts/DataContext';
 import { 
   Search, 
@@ -17,18 +16,15 @@ import {
 import { formatDateTime, formatRelativeTime } from '../data/store';
 
 export default function MessagesPage() {
-  const { user } = useAuth();
   const { messages, markMessageRead } = useData();
   const [selectedMessage, setSelectedMessage] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [replyContent, setReplyContent] = useState('');
 
   const filteredMessages = messages.filter(msg => 
-    msg.recipientId === user?.id || msg.senderId === user?.id
-  ).filter(msg => 
     msg.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
     msg.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    msg.senderName.toLowerCase().includes(searchQuery.toLowerCase())
+    msg.sender.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const currentMessage = messages.find(m => m.id === selectedMessage);
@@ -36,16 +32,19 @@ export default function MessagesPage() {
   const handleSelectMessage = (id: string) => {
     setSelectedMessage(id);
     const msg = messages.find(m => m.id === id);
-    if (msg && !msg.read && msg.recipientId === user?.id) {
+    if (msg && !msg.read) {
       markMessageRead(id);
     }
   };
 
   const handleSendReply = () => {
     if (!replyContent.trim()) return;
-    // For demo, just clear the input
     setReplyContent('');
     alert('Reply sent! (Demo mode)');
+  };
+
+  const getSenderAvatar = (senderName: string) => {
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(senderName)}&background=8FB8A3&color=fff`;
   };
 
   return (
@@ -88,19 +87,19 @@ export default function MessagesPage() {
                 >
                   <div className="flex items-start gap-3">
                     <img 
-                      src={message.senderAvatar} 
-                      alt={message.senderName}
+                      src={getSenderAvatar(message.sender.name)} 
+                      alt={message.sender.name}
                       className="w-10 h-10 rounded-full"
                     />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="font-medium text-white truncate">{message.senderName}</span>
-                        <span className="text-xs text-white/40">{formatRelativeTime(message.sentAt)}</span>
+                        <span className="font-medium text-white truncate">{message.sender.name}</span>
+                        <span className="text-xs text-white/40">{formatRelativeTime(message.createdAt)}</span>
                       </div>
                       <p className="text-sm text-white/70 truncate mb-1">{message.subject}</p>
                       <p className="text-xs text-white/40 truncate">{message.content.substring(0, 60)}...</p>
                     </div>
-                    {!message.read && message.recipientId === user?.id && (
+                    {!message.read && (
                       <div className="w-2 h-2 bg-[#8FB8A3] rounded-full flex-shrink-0 mt-2" />
                     )}
                   </div>
@@ -124,12 +123,12 @@ export default function MessagesPage() {
                     <ChevronLeft className="w-5 h-5" />
                   </button>
                   <img 
-                    src={currentMessage.senderAvatar} 
-                    alt={currentMessage.senderName}
+                    src={getSenderAvatar(currentMessage.sender.name)} 
+                    alt={currentMessage.sender.name}
                     className="w-10 h-10 rounded-full"
                   />
                   <div>
-                    <h3 className="font-medium text-white">{currentMessage.senderName}</h3>
+                    <h3 className="font-medium text-white">{currentMessage.sender.name}</h3>
                     <p className="text-xs text-white/40">{currentMessage.subject}</p>
                   </div>
                 </div>
@@ -153,7 +152,7 @@ export default function MessagesPage() {
               <div className="flex-1 overflow-auto p-6">
                 <div className="flex items-center gap-2 text-xs text-white/40 mb-6">
                   <Clock className="w-3 h-3" />
-                  {formatDateTime(currentMessage.sentAt)}
+                  {formatDateTime(currentMessage.createdAt)}
                 </div>
                 <div className="prose prose-invert max-w-none">
                   <p className="text-white/80 whitespace-pre-wrap">{currentMessage.content}</p>

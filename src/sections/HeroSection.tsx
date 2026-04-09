@@ -2,6 +2,7 @@ import { useRef, useEffect, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowDownRight, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -336,13 +337,13 @@ export default function HeroSection() {
               <span>Explore Our Approach</span>
               <ArrowDownRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1 group-hover:translate-y-1" />
             </button>
-            <a 
-              href="./portal.html"
+            <Link 
+              to="/portal"
               className="magnetic btn-outline group"
             >
               <span>Investor Portal</span>
               <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
-            </a>
+            </Link>
           </div>
 
           {/* Stats */}

@@ -117,8 +117,8 @@ export default function CompanyDetailPage() {
 
           <div className="flex items-center gap-3">
             <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-              company.status === 'active' ? 'bg-green-500/10 text-green-400' :
-              company.status === 'pending' ? 'bg-yellow-500/10 text-yellow-400' :
+              company.status === 'ACTIVE' ? 'bg-green-500/10 text-green-400' :
+              company.status === 'PENDING' ? 'bg-yellow-500/10 text-yellow-400' :
               'bg-gray-500/10 text-gray-400'
             }`}>
               {company.status.charAt(0).toUpperCase() + company.status.slice(1)}
@@ -167,11 +167,11 @@ export default function CompanyDetailPage() {
             </div>
             <div className="bg-[#141414] border border-[#2A2A2A] rounded-xl p-5">
               <p className="text-white/50 text-sm mb-1">Revenue Growth</p>
-              <p className="text-xl font-semibold text-green-400">+{company.metrics.revenueGrowth}%</p>
+              <p className="text-xl font-semibold text-green-400">+{company.metrics?.revenueGrowth ?? 0}%</p>
             </div>
             <div className="bg-[#141414] border border-[#2A2A2A] rounded-xl p-5">
               <p className="text-white/50 text-sm mb-1">Profit Margin</p>
-              <p className="text-xl font-semibold text-white">{company.metrics.profitMargin}%</p>
+              <p className="text-xl font-semibold text-white">{company.metrics?.profitMargin ?? 0}%</p>
             </div>
           </div>
 
@@ -212,10 +212,10 @@ export default function CompanyDetailPage() {
               <h3 className="text-lg font-medium text-white mb-4">Key Metrics</h3>
               <div className="space-y-4">
                 {[
-                  { label: 'Revenue Growth', value: `+${company.metrics.revenueGrowth}%`, trend: 'up' },
-                  { label: 'Profit Margin', value: `${company.metrics.profitMargin}%`, trend: 'neutral' },
-                  { label: 'Customer Count', value: company.metrics.customerCount.toLocaleString(), trend: 'up' },
-                  { label: 'Market Share', value: `${company.metrics.marketShare}%`, trend: 'up' },
+                  { label: 'Revenue Growth', value: `+${company.metrics?.revenueGrowth ?? 0}%`, trend: 'up' },
+                  { label: 'Profit Margin', value: `${company.metrics?.profitMargin ?? 0}%`, trend: 'neutral' },
+                  { label: 'Customer Count', value: (company.metrics?.customerCount ?? 0).toLocaleString(), trend: 'up' },
+                  { label: 'Market Share', value: `${company.metrics?.marketShare ?? 0}%`, trend: 'up' },
                 ].map((metric) => (
                   <div key={metric.label} className="flex items-center justify-between p-3 bg-[#1A1A1A] rounded-lg">
                     <span className="text-white/70">{metric.label}</span>

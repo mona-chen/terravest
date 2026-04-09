@@ -5,6 +5,10 @@ const envSchema = z.object({
   DATABASE_URL: z.string(),
   JWT_SECRET: z.string(),
   JWT_REFRESH_SECRET: z.string(),
+  JWT_ISSUER: z.string().optional(),
+  JWT_AUDIENCE: z.string().optional(),
+  JWT_ACCESS_EXPIRY: z.string().optional(),
+  JWT_REFRESH_EXPIRY: z.string().optional(),
   NODE_ENV: z.enum(['development', 'production', 'test']).optional(),
 });
 
@@ -19,6 +23,10 @@ const config = {
   databaseUrl: parse.data.DATABASE_URL,
   jwtSecret: parse.data.JWT_SECRET,
   jwtRefreshSecret: parse.data.JWT_REFRESH_SECRET,
+  jwtIssuer: parse.data.JWT_ISSUER ?? 'terravest',
+  jwtAudience: parse.data.JWT_AUDIENCE ?? 'terravest-api',
+  jwtAccessExpiry: parse.data.JWT_ACCESS_EXPIRY ?? '15m',
+  jwtRefreshExpiry: parse.data.JWT_REFRESH_EXPIRY ?? '7d',
   nodeEnv: parse.data.NODE_ENV ?? 'development',
 };
 

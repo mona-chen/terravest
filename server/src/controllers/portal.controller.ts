@@ -27,8 +27,8 @@ export async function getDashboard(req: Request, res: Response) {
     });
   }
 
-  const totalValue = investor.portfolioHoldings.reduce((sum, h) => sum + Number(h.value), 0);
-  const totalInvested = investor.portfolioHoldings.reduce((sum, h) => sum + Number(h.purchasePrice) * h.shares, 0);
+  const totalValue = investor.portfolioHoldings.reduce((sum: number, h: any) => sum + Number(h.value), 0);
+  const totalInvested = investor.portfolioHoldings.reduce((sum: number, h: any) => sum + Number(h.purchasePrice) * h.shares, 0);
   const totalReturn = totalValue - totalInvested;
 
   const unreadNotifications = await prisma.notification.count({

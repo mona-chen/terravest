@@ -1,125 +1,89 @@
-import { useEffect, useRef } from 'react';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import Lenis from 'lenis';
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import LandingLayout from './layouts/LandingLayout';
+import { AuthProvider } from './portal/contexts/AuthContext';
+import { DataProvider } from './portal/contexts/DataContext';
+import PortalLayout from './portal/components/Layout';
+import LoginPage from './portal/pages/LoginPage';
+import DashboardPage from './portal/pages/DashboardPage';
+import PortfolioPage from './portal/pages/PortfolioPage';
+import CompanyDetailPage from './portal/pages/CompanyDetailPage';
+import InvestmentOpportunitiesPage from './portal/pages/InvestmentOpportunitiesPage';
+import CapitalCallsPage from './portal/pages/CapitalCallsPage';
+import DocumentsPage from './portal/pages/DocumentsPage';
+import TaxDocumentsPage from './portal/pages/TaxDocumentsPage';
+import MessagesPage from './portal/pages/MessagesPage';
+import NotificationsPage from './portal/pages/NotificationsPage';
+import ProfilePage from './portal/pages/ProfilePage';
+import SettingsPage from './portal/pages/SettingsPage';
+import CompliancePage from './portal/pages/CompliancePage';
+import ReportsPage from './portal/pages/ReportsPage';
+import AdminDashboardPage from './portal/pages/admin/AdminDashboardPage';
+import AdminUsersPage from './portal/pages/admin/UsersPage';
+import AdminPortfoliosPage from './portal/pages/admin/PortfoliosPage';
+import AdminOpportunitiesPage from './portal/pages/admin/AdminOpportunitiesPage';
 
-import CustomCursor from './components/CustomCursor';
-import ScrollProgress from './components/ScrollProgress';
-import BackToTop from './components/BackToTop';
-import Navigation from './components/Navigation';
-import HeroSection from './sections/HeroSection';
-import IntroSection from './sections/IntroSection';
-import SectorsSection from './sections/SectorsSection';
-import ApproachSection from './sections/ApproachSection';
-import GovernanceSection from './sections/GovernanceSection';
-import PerformanceSection from './sections/PerformanceSection';
-import SustainabilitySection from './sections/SustainabilitySection';
-import PresenceSection from './sections/PresenceSection';
-import TestimonialsSection from './sections/TestimonialsSection';
-import TeamSection from './sections/TeamSection';
-import NewsletterSection from './sections/NewsletterSection';
-import FAQSection from './sections/FAQSection';
-import PortalSection from './sections/PortalSection';
-import ContactSection from './sections/ContactSection';
-import Footer from './sections/Footer';
-
-gsap.registerPlugin(ScrollTrigger);
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const token = localStorage.getItem('terravest_access_token');
+  if (!token) {
+    return <Navigate to="/portal/login" replace />;
+  }
+  return <>{children}</>;
+}
 
 function App() {
-  const lenisRef = useRef<Lenis | null>(null);
-
-  useEffect(() => {
-    // Initialize Lenis with premium settings for fluid scrolling
-    const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      orientation: 'vertical',
-      gestureOrientation: 'vertical',
-      smoothWheel: true,
-      wheelMultiplier: 1,
-      touchMultiplier: 2,
-    });
-
-    lenisRef.current = lenis;
-
-    // Connect Lenis to GSAP ScrollTrigger
-    lenis.on('scroll', ScrollTrigger.update);
-
-    // Use GSAP ticker for smooth animation
-    gsap.ticker.add((time) => {
-      lenis.raf(time * 1000);
-    });
-
-    gsap.ticker.lagSmoothing(0);
-
-    // Refresh ScrollTrigger after content loads
-    const refreshTimeout = setTimeout(() => {
-      ScrollTrigger.refresh();
-    }, 100);
-
-    // Handle anchor links
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-      anchor.addEventListener('click', (e) => {
-        const href = anchor.getAttribute('href');
-        if (href && href !== '#') {
-          e.preventDefault();
-          const target = document.querySelector(href);
-          if (target) {
-            lenis.scrollTo(target as HTMLElement, {
-              offset: -80,
-              duration: 1.5,
-            });
-          }
-        }
-      });
-    });
-
-    return () => {
-      clearTimeout(refreshTimeout);
-      lenis.destroy();
-      gsap.ticker.remove(lenis.raf);
-    };
-  }, []);
-
   return (
-    <div className="bg-[#F7F5F0] min-h-screen relative">
-      {/* Custom cursor */}
-      <CustomCursor />
-      
-      {/* Scroll progress indicator */}
-      <ScrollProgress />
-      
-      {/* Grain overlay */}
-      <div className="grain" />
-      
-      {/* Gradient mesh background */}
-      <div className="gradient-mesh fixed inset-0 z-0" />
-      
-      {/* Navigation */}
-      <Navigation />
-      
-      {/* Main content */}
-      <main className="relative z-10">
-        <HeroSection />
-        <IntroSection />
-        <SectorsSection />
-        <ApproachSection />
-        <GovernanceSection />
-        <PerformanceSection />
-        <SustainabilitySection />
-        <PresenceSection />
-        <TestimonialsSection />
-        <TeamSection />
-        <NewsletterSection />
-        <FAQSection />
-        <PortalSection />
-        <ContactSection />
-        <Footer />
-      </main>
-      
-      {/* Back to top button */}
-      <BackToTop />
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<LandingLayout />} />
+        <Route
+          path="/portal/*"
+          element={
+            <AuthProvider>
+              <DataProvider>
+                <PortalRoutes />
+              </DataProvider>
+            </AuthProvider>
+          }
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+function PortalRoutes() {
+  return (
+    <Routes>
+      <Route path="login" element={<LoginPage />} />
+      <Route
+        element={
+          <ProtectedRoute>
+            <Outlet />
+          </ProtectedRoute>
+        }
+      >
+        <Route element={<PortalLayout />}>
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<DashboardPage />} />
+          <Route path="portfolio" element={<PortfolioPage />} />
+          <Route path="portfolio/:companyId" element={<CompanyDetailPage />} />
+          <Route path="opportunities" element={<InvestmentOpportunitiesPage />} />
+          <Route path="capital-calls" element={<CapitalCallsPage />} />
+          <Route path="documents" element={<DocumentsPage />} />
+          <Route path="tax-documents" element={<TaxDocumentsPage />} />
+          <Route path="messages" element={<MessagesPage />} />
+          <Route path="notifications" element={<NotificationsPage />} />
+          <Route path="profile" element={<ProfilePage />} />
+          <Route path="settings" element={<SettingsPage />} />
+          <Route path="compliance" element={<CompliancePage />} />
+          <Route path="reports" element={<ReportsPage />} />
+          <Route path="admin/dashboard" element={<AdminDashboardPage />} />
+          <Route path="admin/users" element={<AdminUsersPage />} />
+          <Route path="admin/portfolios" element={<AdminPortfoliosPage />} />
+          <Route path="admin/opportunities" element={<AdminOpportunitiesPage />} />
+        </Route>
+      </Route>
+    </Routes>
   );
 }
 

@@ -25,15 +25,15 @@ import {
 } from 'lucide-react';
 
 const navigation = [
-  { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-  { name: 'Portfolio', path: '/portfolio', icon: PieChart },
-  { name: 'Opportunities', path: '/opportunities', icon: TrendingUp },
-  { name: 'Capital Activity', path: '/capital-calls', icon: DollarSign },
-  { name: 'Tax Documents', path: '/tax-documents', icon: Receipt },
-  { name: 'Documents', path: '/documents', icon: FileText },
-  { name: 'Compliance', path: '/compliance', icon: Shield },
-  { name: 'Reports', path: '/reports', icon: BarChart3 },
-  { name: 'Messages', path: '/messages', icon: MessageSquare },
+  { name: 'Dashboard', path: '/portal/dashboard', icon: LayoutDashboard },
+  { name: 'Portfolio', path: '/portal/portfolio', icon: PieChart },
+  { name: 'Opportunities', path: '/portal/opportunities', icon: TrendingUp },
+  { name: 'Capital Activity', path: '/portal/capital-calls', icon: DollarSign },
+  { name: 'Tax Documents', path: '/portal/tax-documents', icon: Receipt },
+  { name: 'Documents', path: '/portal/documents', icon: FileText },
+  { name: 'Compliance', path: '/portal/compliance', icon: Shield },
+  { name: 'Reports', path: '/portal/reports', icon: BarChart3 },
+  { name: 'Messages', path: '/portal/messages', icon: MessageSquare },
 ];
 
 export default function Layout() {
@@ -66,7 +66,7 @@ export default function Layout() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      navigate(`/documents?search=${encodeURIComponent(searchQuery)}`);
+      navigate(`/portal/documents?search=${encodeURIComponent(searchQuery)}`);
       setSearchQuery('');
       setShowSearchResults(false);
     }
@@ -90,7 +90,7 @@ export default function Layout() {
       >
         {/* Logo */}
         <div className="h-16 flex items-center px-6 border-b border-[#2A2A2A] flex-shrink-0">
-          <NavLink to="/dashboard" className="flex items-center gap-3">
+          <NavLink to="/portal/dashboard" className="flex items-center gap-3">
             <div className="w-8 h-8 bg-[#8FB8A3] flex items-center justify-center">
               <Building2 className="w-4 h-4 text-[#0A0A0A]" />
             </div>
@@ -139,7 +139,7 @@ export default function Layout() {
         {/* Bottom section - Fixed at bottom */}
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-[#2A2A2A] bg-[#141414]">
           <NavLink
-            to="/settings"
+            to="/portal/settings"
             className={({ isActive }) => 
               `flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 w-auto ${
                 isActive 
@@ -194,7 +194,7 @@ export default function Layout() {
           <div className="flex items-center gap-3">
             {/* Notifications */}
             <NavLink 
-              to="/notifications"
+              to="/portal/notifications"
               className="relative p-2 text-white/50 hover:text-white hover:bg-[#1A1A1A] rounded-lg transition-colors"
             >
               <Bell className="w-5 h-5" />
@@ -210,13 +210,13 @@ export default function Layout() {
                 className="flex items-center gap-3 p-1.5 rounded-lg hover:bg-[#1A1A1A] transition-colors"
               >
                 <img 
-                  src={user?.avatar} 
+                  src={user?.investor?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || '')}&background=8FB8A3&color=fff`} 
                   alt={user?.name}
                   className="w-8 h-8 rounded-full"
                 />
                 <div className="hidden sm:block text-left">
                   <p className="text-sm font-medium text-white">{user?.name}</p>
-                  <p className="text-xs text-white/40">{user?.role === 'investor' ? 'Investor' : 'Administrator'}</p>
+                  <p className="text-xs text-white/40">{user?.role === 'INVESTOR' ? 'Investor' : 'Administrator'}</p>
                 </div>
                 <ChevronDown className={`w-4 h-4 text-white/40 transition-transform ${profileOpen ? 'rotate-180' : ''}`} />
               </button>
@@ -229,7 +229,7 @@ export default function Layout() {
                     <p className="text-xs text-white/40">{user?.email}</p>
                   </div>
                   <NavLink 
-                    to="/profile"
+                    to="/portal/profile"
                     onClick={() => setProfileOpen(false)}
                     className="flex items-center gap-3 px-4 py-2 text-white/60 hover:text-white hover:bg-[#2A2A2A] transition-colors"
                   >
@@ -237,7 +237,7 @@ export default function Layout() {
                     Profile
                   </NavLink>
                   <NavLink 
-                    to="/messages"
+                    to="/portal/messages"
                     onClick={() => setProfileOpen(false)}
                     className="flex items-center gap-3 px-4 py-2 text-white/60 hover:text-white hover:bg-[#2A2A2A] transition-colors"
                   >
@@ -250,7 +250,7 @@ export default function Layout() {
                     )}
                   </NavLink>
                   <NavLink 
-                    to="/settings"
+                    to="/portal/settings"
                     onClick={() => setProfileOpen(false)}
                     className="flex items-center gap-3 px-4 py-2 text-white/60 hover:text-white hover:bg-[#2A2A2A] transition-colors"
                   >

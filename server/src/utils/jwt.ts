@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { config } from '../config/env';
+import config from '../config/env';
 
 export interface TokenPayload {
   userId: string;
@@ -12,51 +12,41 @@ export interface TokenPayload {
   aud?: string;
 }
 
-/**
- * Sign an access token (15 minute expiry)
- */
 export function signAccessToken(payload: Omit<TokenPayload, 'iat' | 'exp' | 'iss' | 'aud'>): string {
   return jwt.sign(
     {
       ...payload,
-      iss: config.JWT_ISSUER,
-      aud: config.JWT_AUDIENCE,
+      iss: config.jwtIssuer,
+      aud: config.jwtAudience,
     },
-    config.JWT_SECRET,
+    config.jwtSecret,
     {
       algorithm: 'HS256',
-      expiresIn: config.JWT_ACCESS_EXPIRY,
+      expiresIn: config.jwtAccessExpiry as any,
     }
   );
 }
 
-/**
- * Sign a refresh token (7 day expiry)
- */
 export function signRefreshToken(payload: Omit<TokenPayload, 'iat' | 'exp' | 'iss' | 'aud'>): string {
   return jwt.sign(
     {
       ...payload,
-      iss: config.JWT_ISSUER,
-      aud: config.JWT_AUDIENCE,
+      iss: config.jwtIssuer,
+      aud: config.jwtAudience,
     },
-    config.JWT_REFRESH_SECRET,
+    config.jwtRefreshSecret,
     {
       algorithm: 'HS256',
-      expiresIn: config.JWT_REFRESH_EXPIRY,
+      expiresIn: config.jwtRefreshExpiry as any,
     }
   );
 }
 
-/**
- * Verify an access token
- * Returns payload if valid, null if invalid or expired
- */
 export function verifyAccessToken(token: string): TokenPayload | null {
   try {
-    const decoded = jwt.verify(token, config.JWT_SECRET, {
-      issuer: config.JWT_ISSUER,
-      audience: config.JWT_AUDIENCE,
+    const decoded = jwt.verify(token, config.jwtSecret, {
+      issuer: config.jwtIssuer,
+      audience: config.jwtAudience,
     }) as TokenPayload;
     return decoded;
   } catch (error) {
@@ -64,15 +54,11 @@ export function verifyAccessToken(token: string): TokenPayload | null {
   }
 }
 
-/**
- * Verify a refresh token
- * Returns payload if valid, null if invalid or expired
- */
 export function verifyRefreshToken(token: string): TokenPayload | null {
   try {
-    const decoded = jwt.verify(token, config.JWT_REFRESH_SECRET, {
-      issuer: config.JWT_ISSUER,
-      audience: config.JWT_AUDIENCE,
+    const decoded = jwt.verify(token, config.jwtRefreshSecret, {
+      issuer: config.jwtIssuer,
+      audience: config.jwtAudience,
     }) as TokenPayload;
     return decoded;
   } catch (error) {
@@ -80,10 +66,6 @@ export function verifyRefreshToken(token: string): TokenPayload | null {
   }
 }
 
-/**
- * Decode a token without verification
- * Useful for debugging, but always verify for security
- */
 export function decodeToken(token: string): TokenPayload | null {
   try {
     const decoded = jwt.decode(token) as TokenPayload;

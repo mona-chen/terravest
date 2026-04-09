@@ -159,13 +159,13 @@ export default function Navigation() {
                   </span>
                 </button>
               ))}
-              <a 
-                href="./portal.html"
+              <Link 
+                to="/portal"
                 className="magnetic ml-4 px-6 py-3 text-sm text-[#1A1A1A] border border-[#1A1A1A]/20 hover:bg-[#1A1A1A] hover:text-white hover:border-[#1A1A1A] transition-all duration-300 flex items-center gap-2"
               >
                 Investor Portal
                 <ExternalLink className="w-4 h-4" />
-              </a>
+              </Link>
             </div>
 
             {/* Mobile Menu Button */}
@@ -229,13 +229,13 @@ export default function Navigation() {
                   {link.label}
                 </button>
               ))}
-              <a 
-                href="./portal.html"
+              <Link 
+                to="/portal"
                 className="mt-8 px-10 py-4 text-lg font-medium text-[#1A1A1A] bg-[#8FB8A3] flex items-center gap-2"
               >
                 Investor Portal
                 <ExternalLink className="w-5 h-5" />
-              </a>
+              </Link>
             </div>
           </div>
         </div>

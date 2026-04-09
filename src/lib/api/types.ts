@@ -1,3 +1,10 @@
+export interface ProfileUpdate {
+  name?: string;
+  phone?: string;
+  company?: string;
+  avatar?: string;
+}
+
 export interface User {
   id: string;
   email: string;
@@ -60,6 +67,12 @@ export interface Company {
   revenue: number;
   employees: number;
   status: 'ACTIVE' | 'PENDING' | 'EXITED';
+  metrics?: {
+    revenueGrowth: number;
+    profitMargin: number;
+    customerCount: number;
+    marketShare: number;
+  };
 }
 
 export interface PortfolioHolding {

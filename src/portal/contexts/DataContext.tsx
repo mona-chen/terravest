@@ -2,6 +2,11 @@ import { createContext, useContext, useState, useCallback, useEffect, type React
 import { portalApi } from '@/lib/api';
 import type { Document, Notification, Message, Company, PortfolioHolding, Opportunity, CapitalCall } from '@/lib/api/types';
 
+interface PerformancePoint {
+  month: string;
+  portfolioValue: number;
+}
+
 interface DataContextType {
   documents: Document[];
   notifications: Notification[];
@@ -11,6 +16,7 @@ interface DataContextType {
   portfolio: PortfolioHolding[];
   opportunities: Opportunity[];
   capitalCalls: CapitalCall[];
+  performance: PerformancePoint[];
   isLoading: {
     documents: boolean;
     notifications: boolean;
@@ -37,6 +43,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [portfolio, setPortfolio] = useState<PortfolioHolding[]>([]);
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [capitalCalls, setCapitalCalls] = useState<CapitalCall[]>([]);
+  const [performance] = useState<PerformancePoint[]>([
+    { month: 'Jan', portfolioValue: 850000 },
+    { month: 'Feb', portfolioValue: 920000 },
+    { month: 'Mar', portfolioValue: 980000 },
+    { month: 'Apr', portfolioValue: 1050000 },
+    { month: 'May', portfolioValue: 1120000 },
+    { month: 'Jun', portfolioValue: 1200000 },
+  ]);
   
   const [isLoading, setIsLoading] = useState({
     documents: true,
@@ -139,6 +153,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         portfolio,
         opportunities,
         capitalCalls,
+        performance,
         isLoading,
         markNotificationRead,
         markAllNotificationsRead,

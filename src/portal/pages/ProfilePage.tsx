@@ -19,8 +19,8 @@ export default function ProfilePage() {
   const [formData, setFormData] = useState({
     name: user?.name || '',
     email: user?.email || '',
-    phone: user?.phone || '',
-    company: user?.company || '',
+    phone: user?.investor?.phone || '',
+    company: user?.investor?.company || '',
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -76,7 +76,7 @@ export default function ProfilePage() {
               {/* Avatar */}
               <div className="relative mb-4">
                 <img 
-                  src={user?.avatar} 
+                  src={user?.investor?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || '')}&background=8FB8A3&color=fff`} 
                   alt={user?.name}
                   className="w-24 h-24 rounded-full"
                 />
@@ -101,11 +101,11 @@ export default function ProfilePage() {
               <div className="w-full pt-4 border-t border-[#2A2A2A]">
                 <div className="flex items-center justify-between text-sm mb-2">
                   <span className="text-white/50">Member since</span>
-                  <span className="text-white">{user?.joinedAt ? formatDate(user.joinedAt) : '-'}</span>
+                  <span className="text-white">{user?.investor?.joinedAt ? formatDate(user.investor.joinedAt) : '-'}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-white/50">Last login</span>
-                  <span className="text-white">{user?.lastLogin ? formatDate(user.lastLogin) : '-'}</span>
+                  <span className="text-white">{user?.investor?.lastLoginAt ? formatDate(user.investor.lastLoginAt) : '-'}</span>
                 </div>
               </div>
             </div>
@@ -144,8 +144,8 @@ export default function ProfilePage() {
                       setFormData({
                         name: user?.name || '',
                         email: user?.email || '',
-                        phone: user?.phone || '',
-                        company: user?.company || '',
+                        phone: user?.investor?.phone || '',
+                        company: user?.investor?.company || '',
                       });
                     }}
                     className="px-4 py-2 border border-[#2A2A2A] text-white/70 rounded-lg text-sm hover:text-white transition-colors"
