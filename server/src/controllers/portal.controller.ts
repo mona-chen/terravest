@@ -54,7 +54,7 @@ export async function getProfile(req: Request, res: Response) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     include: {
-      investor: true,
+      investors: true,
     },
   });
 
@@ -77,7 +77,7 @@ export async function getProfile(req: Request, res: Response) {
         name: user.name,
         role: user.role,
         status: user.status,
-        investor: user.investor,
+        investor: user.investors[0] ?? null,
       },
     },
   });
@@ -89,31 +89,34 @@ export async function updateProfile(req: Request, res: Response) {
 
   const user = await prisma.user.update({
     where: { id: userId },
-    data: {
-      name,
-      investor: {
-        update: {
-          phone,
-          company,
-          avatar,
-        },
-      },
-    },
+    data: { name },
     include: {
-      investor: true,
+      investors: true,
     },
+  });
+
+  if (user.investors[0]) {
+    await prisma.investor.update({
+      where: { id: user.investors[0].id },
+      data: { phone, company, avatar },
+    });
+  }
+
+  const updatedUser = await prisma.user.findUnique({
+    where: { id: userId },
+    include: { investors: true },
   });
 
   return res.status(200).json({
     success: true,
     data: {
       user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        status: user.status,
-        investor: user.investor,
+        id: updatedUser!.id,
+        email: updatedUser!.email,
+        name: updatedUser!.name,
+        role: updatedUser!.role,
+        status: updatedUser!.status,
+        investor: updatedUser!.investors[0] ?? null,
       },
     },
   });
@@ -237,6 +240,16 @@ export async function getMessages(req: Request, res: Response) {
 export async function sendMessage(req: Request, res: Response) {
   const userId = req.user?.userId;
   const { subject, content } = req.body;
+
+  if (!userId) {
+    return res.status(401).json({
+      success: false,
+      error: {
+        code: 'UNAUTHORIZED',
+        message: 'Not authenticated',
+      },
+    });
+  }
 
   const message = await prisma.message.create({
     data: {

@@ -41,7 +41,7 @@ export async function getDashboard(req: Request, res: Response) {
 export async function getUsers(req: Request, res: Response) {
   const users = await prisma.user.findMany({
     include: {
-      investor: true,
+      investors: true,
     },
     orderBy: {
       createdAt: 'desc',
@@ -60,7 +60,7 @@ export async function getUser(req: Request, res: Response) {
   const user = await prisma.user.findUnique({
     where: { id },
     include: {
-      investor: {
+      investors: {
         include: {
           portfolioHoldings: {
             include: {
@@ -100,7 +100,7 @@ export async function updateUser(req: Request, res: Response) {
       role,
     },
     include: {
-      investor: true,
+      investors: true,
     },
   });
 

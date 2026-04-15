@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 export interface UserData {
   id: string;
   email: string;
-  name: string;
+  name: string | null;
   role: 'ADMIN' | 'INVESTOR';
 }
 

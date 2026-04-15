@@ -32,15 +32,16 @@ export async function register(req: Request, res: Response) {
       name,
       role: 'INVESTOR',
       status: 'ACTIVE',
-      investor: {
+      investors: {
         create: {
+          email: email.toLowerCase(),
           phone,
           company,
         },
       },
     },
     include: {
-      investor: true,
+      investors: true,
     },
   });
 
@@ -55,7 +56,7 @@ export async function register(req: Request, res: Response) {
         name: user.name,
         role: user.role,
         status: user.status,
-        investor: user.investor,
+        investor: user.investors[0] ?? null,
       },
       ...tokens,
     },
@@ -68,7 +69,7 @@ export async function login(req: Request, res: Response) {
   const user = await prisma.user.findUnique({
     where: { email: email.toLowerCase() },
     include: {
-      investor: true,
+      investors: true,
     },
   });
 
@@ -94,9 +95,10 @@ export async function login(req: Request, res: Response) {
     });
   }
 
-  if (user.investor) {
+  const investor = user.investors[0];
+  if (investor) {
     await prisma.investor.update({
-      where: { id: user.investor.id },
+      where: { id: investor.id },
       data: { lastLoginAt: new Date() },
     });
   }
@@ -112,9 +114,54 @@ export async function login(req: Request, res: Response) {
         name: user.name,
         role: user.role,
         status: user.status,
-        investor: user.investor,
+        investor: investor ?? null,
       },
       ...tokens,
+    },
+  });
+}
+
+export async function getMe(req: Request, res: Response) {
+  const userId = req.user?.userId;
+
+  if (!userId) {
+    return res.status(401).json({
+      success: false,
+      error: {
+        code: 'UNAUTHORIZED',
+        message: 'Not authenticated',
+      },
+    });
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: {
+      investors: true,
+    },
+  });
+
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      error: {
+        code: 'NOT_FOUND',
+        message: 'User not found',
+      },
+    });
+  }
+
+  return res.status(200).json({
+    success: true,
+    data: {
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        status: user.status,
+        investor: user.investors[0] ?? null,
+      },
     },
   });
 }
@@ -164,51 +211,6 @@ export async function logout(req: Request, res: Response) {
     success: true,
     data: {
       message: 'Logged out successfully',
-    },
-  });
-}
-
-export async function getMe(req: Request, res: Response) {
-  const userId = req.user?.userId;
-
-  if (!userId) {
-    return res.status(401).json({
-      success: false,
-      error: {
-        code: 'UNAUTHORIZED',
-        message: 'Not authenticated',
-      },
-    });
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    include: {
-      investor: true,
-    },
-  });
-
-  if (!user) {
-    return res.status(404).json({
-      success: false,
-      error: {
-        code: 'NOT_FOUND',
-        message: 'User not found',
-      },
-    });
-  }
-
-  return res.status(200).json({
-    success: true,
-    data: {
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        status: user.status,
-        investor: user.investor,
-      },
     },
   });
 }
