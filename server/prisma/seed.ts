@@ -47,7 +47,7 @@ async function main() {
 
   // 3) Investor Users (3-5) and Investor records
   const investorInfos = [
-    { first: 'Jean-Pierre', last: 'Moussa', email: 'investor1@terravest.cm' },
+    { first: 'Jean-Pierre', last: 'Moussa', email: 'investor@terravest.cm' },
     { first: 'Sarah', last: 'Johnson', email: 'sarah.j@email.com' },
     { first: 'Michael', last: 'Chen', email: 'm.chen@email.com' },
     { first: 'Amara', last: 'Okafor', email: 'amara.o@email.com' },
@@ -112,14 +112,14 @@ async function main() {
   ]
   for (const dInfo of docData) {
     const created = await prisma.document.create({ data: {
-      title: dInfo.title,
+      name: dInfo.title,
       fileType: dInfo.fileType,
       url: dInfo.url,
       uploadedById: adminId,
       companyId: dInfo.companyIndex != null ? companies[dInfo.companyIndex].id : null,
       investorId: dInfo.investorIndex != null ? investors[dInfo.investorIndex].investor.id : null,
     }})
-    console.log('Created Document:', created.title)
+    console.log('Created Document:', created.name)
   }
 
   // 6) Notifications (per investor) - 4-5 per investor (seeded as 4 per investor for practicality)

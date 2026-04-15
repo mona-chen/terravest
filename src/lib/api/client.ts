@@ -33,8 +33,9 @@ class ApiClient {
       (response) => response,
       async (error: AxiosError) => {
         const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
+        const isAuthEndpoint = originalRequest.url?.includes('/auth/');
 
-        if (error.response?.status === 401 && !originalRequest._retry) {
+        if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
           originalRequest._retry = true;
 
           try {
@@ -58,7 +59,7 @@ class ApiClient {
           } catch (refreshError) {
             localStorage.removeItem('terravest_access_token');
             localStorage.removeItem('terravest_refresh_token');
-            window.location.href = '/login';
+            window.location.href = '/portal/login';
             return Promise.reject(refreshError);
           }
         }
@@ -69,23 +70,23 @@ class ApiClient {
   }
 
   async get<T>(url: string, config?: AxiosRequestConfig) {
-    const response = await this.client.get<T>(url, config);
-    return response.data;
+    const response = await this.client.get<{ success: boolean; data: T }>(url, config);
+    return response.data.data;
   }
 
   async post<T>(url: string, data?: unknown, config?: AxiosRequestConfig) {
-    const response = await this.client.post<T>(url, data, config);
-    return response.data;
+    const response = await this.client.post<{ success: boolean; data: T }>(url, data, config);
+    return response.data.data;
   }
 
   async patch<T>(url: string, data?: unknown, config?: AxiosRequestConfig) {
-    const response = await this.client.patch<T>(url, data, config);
-    return response.data;
+    const response = await this.client.patch<{ success: boolean; data: T }>(url, data, config);
+    return response.data.data;
   }
 
   async delete<T>(url: string, config?: AxiosRequestConfig) {
-    const response = await this.client.delete<T>(url, config);
-    return response.data;
+    const response = await this.client.delete<{ success: boolean; data: T }>(url, config);
+    return response.data.data;
   }
 }
 

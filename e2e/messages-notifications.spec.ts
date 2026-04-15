@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Messages', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/portal.html');
+    await page.goto('/portal');
     await page.getByPlaceholder(/investor@terravest.cm/i).fill('investor@terravest.cm');
     await page.getByPlaceholder("••••••••").fill('password123');
     await page.getByRole('button', { name: /Sign in/i }).click();
@@ -68,7 +68,7 @@ test.describe('Messages', () => {
 
 test.describe('Notifications', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/portal.html');
+    await page.goto('/portal');
     await page.getByPlaceholder(/investor@terravest.cm/i).fill('investor@terravest.cm');
     await page.getByPlaceholder("••••••••").fill('password123');
     await page.getByRole('button', { name: /Sign in/i }).click();

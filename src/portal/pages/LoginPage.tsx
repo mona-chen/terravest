@@ -120,7 +120,6 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="investor@terravest.cm"
                   className="w-full bg-[#141414] border border-[#2A2A2A] rounded-lg pl-12 pr-4 py-3.5 text-white placeholder-white/30 focus:border-[#8FB8A3] transition-colors"
-                  required
                 />
               </div>
             </div>
@@ -136,7 +135,6 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   className="w-full bg-[#141414] border border-[#2A2A2A] rounded-lg pl-12 pr-12 py-3.5 text-white placeholder-white/30 focus:border-[#8FB8A3] transition-colors"
-                  required
                 />
                 <button
                   type="button"

@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Investment Opportunities', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/portal.html');
+    await page.goto('/portal');
     await page.getByPlaceholder(/investor@terravest.cm/i).fill('investor@terravest.cm');
     await page.getByPlaceholder("••••••••").fill('password123');
     await page.getByRole('button', { name: /Sign in/i }).click();
@@ -65,7 +65,7 @@ test.describe('Investment Opportunities', () => {
 
 test.describe('Capital Calls', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/portal.html');
+    await page.goto('/portal');
     await page.getByPlaceholder(/investor@terravest.cm/i).fill('investor@terravest.cm');
     await page.getByPlaceholder("••••••••").fill('password123');
     await page.getByRole('button', { name: /Sign in/i }).click();
@@ -111,7 +111,7 @@ test.describe('Capital Calls', () => {
 
 test.describe('Compliance', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/portal.html');
+    await page.goto('/portal');
     await page.getByPlaceholder(/investor@terravest.cm/i).fill('investor@terravest.cm');
     await page.getByPlaceholder("••••••••").fill('password123');
     await page.getByRole('button', { name: /Sign in/i }).click();

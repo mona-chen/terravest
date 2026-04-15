@@ -14,7 +14,7 @@ import type {
 
 export const portalApi = {
   getDashboard: () =>
-    apiClient.get<{ data: DashboardData }>(ENDPOINTS.PORTAL.DASHBOARD),
+    apiClient.get<DashboardData>(ENDPOINTS.PORTAL.DASHBOARD),
 
   getProfile: () =>
     apiClient.get<{ user: User }>(ENDPOINTS.PORTAL.PROFILE),
@@ -23,29 +23,29 @@ export const portalApi = {
     apiClient.patch<{ user: User }>(ENDPOINTS.PORTAL.PROFILE, data),
 
   getPortfolio: () =>
-    apiClient.get<{ data: PortfolioHolding[] }>(ENDPOINTS.PORTAL.PORTFOLIO),
+    apiClient.get<PortfolioHolding[]>(ENDPOINTS.PORTAL.PORTFOLIO),
 
   getCompanies: () =>
-    apiClient.get<{ data: Company[] }>(ENDPOINTS.PORTAL.COMPANIES),
+    apiClient.get<Company[]>(ENDPOINTS.PORTAL.COMPANIES),
 
   getDocuments: () =>
-    apiClient.get<{ data: Document[] }>(ENDPOINTS.PORTAL.DOCUMENTS),
+    apiClient.get<Document[]>(ENDPOINTS.PORTAL.DOCUMENTS),
 
   getNotifications: () =>
-    apiClient.get<{ data: Notification[] }>(ENDPOINTS.PORTAL.NOTIFICATIONS),
+    apiClient.get<Notification[]>(ENDPOINTS.PORTAL.NOTIFICATIONS),
 
   markNotificationRead: (id: string) =>
     apiClient.patch(ENDPOINTS.PORTAL.NOTIFICATIONS + `/${id}/read`, {}),
 
   getMessages: () =>
-    apiClient.get<{ data: Message[] }>(ENDPOINTS.PORTAL.MESSAGES),
+    apiClient.get<Message[]>(ENDPOINTS.PORTAL.MESSAGES),
 
   sendMessage: (data: { subject: string; content: string }) =>
-    apiClient.post<{ data: Message }>(ENDPOINTS.PORTAL.MESSAGES, data),
+    apiClient.post<Message>(ENDPOINTS.PORTAL.MESSAGES, data),
 
   getOpportunities: () =>
-    apiClient.get<{ data: Opportunity[] }>(ENDPOINTS.PORTAL.OPPORTUNITIES),
+    apiClient.get<Opportunity[]>(ENDPOINTS.PORTAL.OPPORTUNITIES),
 
   getCapitalCalls: () =>
-    apiClient.get<{ data: CapitalCall[] }>(ENDPOINTS.PORTAL.CAPITAL_CALLS),
+    apiClient.get<CapitalCall[]>(ENDPOINTS.PORTAL.CAPITAL_CALLS),
 };

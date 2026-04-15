@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Portfolio', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/portal.html');
+    await page.goto('/portal');
     await page.getByPlaceholder(/investor@terravest.cm/i).fill('investor@terravest.cm');
     await page.getByPlaceholder("••••••••").fill('password123');
     await page.getByRole('button', { name: /Sign in/i }).click();
@@ -62,12 +62,12 @@ test.describe('Portfolio', () => {
 
 test.describe('Company Detail', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/portal.html');
+    await page.goto('/portal');
     await page.getByPlaceholder(/investor@terravest.cm/i).fill('investor@terravest.cm');
     await page.getByPlaceholder("••••••••").fill('password123');
     await page.getByRole('button', { name: /Sign in/i }).click();
     await page.waitForURL(/.*dashboard/);
-    await page.goto('/portal.html#/portfolio/1');
+    await page.goto('/portal/portfolio/1');
   });
 
   test('should display company header', async ({ page }) => {

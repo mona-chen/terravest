@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
 import { portalApi } from '@/lib/api';
+import { useAuth } from './AuthContext';
 import type { Document, Notification, Message, Company, PortfolioHolding, Opportunity, CapitalCall } from '@/lib/api/types';
 
 interface PerformancePoint {
@@ -36,6 +37,7 @@ interface DataContextType {
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export function DataProvider({ children }: { children: ReactNode }) {
+  const { isAuthenticated } = useAuth();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -53,13 +55,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
   ]);
   
   const [isLoading, setIsLoading] = useState({
-    documents: true,
-    notifications: true,
-    messages: true,
-    companies: true,
-    portfolio: true,
-    opportunities: true,
-    capitalCalls: true,
+    documents: false,
+    notifications: false,
+    messages: false,
+    companies: false,
+    portfolio: false,
+    opportunities: false,
+    capitalCalls: false,
   });
 
   const fetchData = useCallback(async () => {
@@ -84,13 +86,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
         portalApi.getCapitalCalls(),
       ]);
 
-      if (docsRes.status === 'fulfilled') setDocuments(docsRes.value.data);
-      if (notifRes.status === 'fulfilled') setNotifications(notifRes.value.data);
-      if (msgRes.status === 'fulfilled') setMessages(msgRes.value.data);
-      if (compRes.status === 'fulfilled') setCompanies(compRes.value.data);
-      if (portRes.status === 'fulfilled') setPortfolio(portRes.value.data);
-      if (oppRes.status === 'fulfilled') setOpportunities(oppRes.value.data);
-      if (ccRes.status === 'fulfilled') setCapitalCalls(ccRes.value.data);
+      if (docsRes.status === 'fulfilled') setDocuments(docsRes.value);
+      if (notifRes.status === 'fulfilled') setNotifications(notifRes.value);
+      if (msgRes.status === 'fulfilled') setMessages(msgRes.value);
+      if (compRes.status === 'fulfilled') setCompanies(compRes.value);
+      if (portRes.status === 'fulfilled') setPortfolio(portRes.value);
+      if (oppRes.status === 'fulfilled') setOpportunities(oppRes.value);
+      if (ccRes.status === 'fulfilled') setCapitalCalls(ccRes.value);
     } finally {
       setIsLoading({
         documents: false,
@@ -105,8 +107,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if (isAuthenticated) {
+      fetchData();
+    }
+  }, [isAuthenticated, fetchData]);
 
   const unreadCount = notifications.filter(n => !n.read).length;
 

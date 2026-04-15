@@ -21,13 +21,13 @@ import {
 } from 'lucide-react';
 
 const navigation = [
-  { name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
-  { name: 'Users', path: '/admin/users', icon: Users },
-  { name: 'Portfolios', path: '/admin/portfolios', icon: PieChart },
-  { name: 'Opportunities', path: '/admin/opportunities', icon: TrendingUp },
-  { name: 'Documents', path: '/admin/documents', icon: FileText },
-  { name: 'Analytics', path: '/admin/analytics', icon: BarChart3 },
-  { name: 'Settings', path: '/admin/settings', icon: Settings },
+  { name: 'Dashboard', path: '/portal/admin/dashboard', icon: LayoutDashboard },
+  { name: 'Users', path: '/portal/admin/users', icon: Users },
+  { name: 'Portfolios', path: '/portal/admin/portfolios', icon: PieChart },
+  { name: 'Opportunities', path: '/portal/admin/opportunities', icon: TrendingUp },
+  { name: 'Documents', path: '/portal/admin/documents', icon: FileText },
+  { name: 'Analytics', path: '/portal/admin/analytics', icon: BarChart3 },
+  { name: 'Settings', path: '/portal/admin/settings', icon: Settings },
 ];
 
 export default function AdminLayout() {
@@ -56,7 +56,7 @@ export default function AdminLayout() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      navigate(`/admin/users?search=${encodeURIComponent(searchQuery)}`);
+      navigate(`/portal/admin/users?search=${encodeURIComponent(searchQuery)}`);
       setSearchQuery('');
     }
   };
@@ -79,7 +79,7 @@ export default function AdminLayout() {
       >
         {/* Logo */}
         <div className="h-16 flex items-center px-6 border-b border-[#2A2A2A] flex-shrink-0">
-          <NavLink to="/admin/dashboard" className="flex items-center gap-3">
+          <NavLink to="/portal/admin/dashboard" className="flex items-center gap-3">
             <div className="w-8 h-8 bg-[#8FB8A3] flex items-center justify-center">
               <Shield className="w-4 h-4 text-[#0A0A0A]" />
             </div>
@@ -125,7 +125,7 @@ export default function AdminLayout() {
         {/* Bottom section */}
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-[#2A2A2A] bg-[#141414]">
           <NavLink
-            to="/dashboard"
+            to="/portal/dashboard"
             className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-white/60 hover:bg-[#1A1A1A] hover:text-white transition-all duration-200"
           >
             <Building2 className="w-5 h-5 flex-shrink-0" />

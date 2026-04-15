@@ -5,9 +5,10 @@ import Leadership from './pages/Leadership'
 import CaseStudies from './pages/CaseStudies'
 import News from './pages/News'
 import Careers from './pages/Careers'
-import { AuthProvider } from './portal/contexts/AuthContext';
+import { AuthProvider, useAuth } from './portal/contexts/AuthContext';
 import { DataProvider } from './portal/contexts/DataContext';
 import PortalLayout from './portal/components/Layout';
+import AdminLayout from './portal/components/AdminLayout';
 import LoginPage from './portal/pages/LoginPage';
 import DashboardPage from './portal/pages/DashboardPage';
 import PortfolioPage from './portal/pages/PortfolioPage';
@@ -33,6 +34,11 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/portal/login" replace />;
   }
   return <>{children}</>;
+}
+
+function LoginRoute() {
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? <Navigate to="/portal/dashboard" replace /> : <LoginPage />;
 }
 
 function App() {
@@ -62,7 +68,7 @@ function App() {
 function PortalRoutes() {
   return (
     <Routes>
-      <Route path="login" element={<LoginPage />} />
+      <Route path="login" element={<LoginRoute />} />
       <Route
         element={
           <ProtectedRoute>
@@ -85,6 +91,8 @@ function PortalRoutes() {
           <Route path="settings" element={<SettingsPage />} />
           <Route path="compliance" element={<CompliancePage />} />
           <Route path="reports" element={<ReportsPage />} />
+        </Route>
+        <Route element={<AdminLayout />}>
           <Route path="admin/dashboard" element={<AdminDashboardPage />} />
           <Route path="admin/users" element={<AdminUsersPage />} />
           <Route path="admin/portfolios" element={<AdminPortfoliosPage />} />

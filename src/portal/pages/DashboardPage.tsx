@@ -99,14 +99,14 @@ export default function DashboardPage() {
           </div>
           <div className="flex items-center gap-3">
             <button 
-              onClick={() => navigate('/opportunities')}
+              onClick={() => navigate('/portal/opportunities')}
               className="flex items-center gap-2 px-4 py-2 bg-[#8FB8A3] text-[#0A0A0A] rounded-lg font-medium hover:bg-[#7BA391] transition-colors"
             >
               <Plus className="w-4 h-4" />
               <span className="text-sm">New Investment</span>
             </button>
             <NavLink 
-              to="/reports"
+              to="/portal/reports"
               className="flex items-center gap-2 px-4 py-2 bg-[#141414] border border-[#2A2A2A] rounded-lg text-white/70 hover:text-white hover:border-[#8FB8A3] transition-colors"
             >
               <Download className="w-4 h-4" />
@@ -173,7 +173,7 @@ export default function DashboardPage() {
       {/* Quick Actions */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <button 
-          onClick={() => navigate('/opportunities')}
+          onClick={() => navigate('/portal/opportunities')}
           className="flex items-center gap-3 p-4 bg-[#141414] border border-[#2A2A2A] rounded-xl hover:border-[#8FB8A3] hover:bg-[#1A1A1A] transition-all group"
         >
           <div className="w-10 h-10 bg-[#8FB8A3]/10 rounded-lg flex items-center justify-center group-hover:bg-[#8FB8A3]/20 transition-colors">
@@ -185,7 +185,7 @@ export default function DashboardPage() {
           </div>
         </button>
         <button 
-          onClick={() => navigate('/portfolio')}
+          onClick={() => navigate('/portal/portfolio')}
           className="flex items-center gap-3 p-4 bg-[#141414] border border-[#2A2A2A] rounded-xl hover:border-[#8FB8A3] hover:bg-[#1A1A1A] transition-all group"
         >
           <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center group-hover:bg-blue-500/20 transition-colors">
@@ -197,7 +197,7 @@ export default function DashboardPage() {
           </div>
         </button>
         <button 
-          onClick={() => navigate('/documents')}
+          onClick={() => navigate('/portal/documents')}
           className="flex items-center gap-3 p-4 bg-[#141414] border border-[#2A2A2A] rounded-xl hover:border-[#8FB8A3] hover:bg-[#1A1A1A] transition-all group"
         >
           <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center group-hover:bg-purple-500/20 transition-colors">
@@ -209,7 +209,7 @@ export default function DashboardPage() {
           </div>
         </button>
         <button 
-          onClick={() => navigate('/messages')}
+          onClick={() => navigate('/portal/messages')}
           className="flex items-center gap-3 p-4 bg-[#141414] border border-[#2A2A2A] rounded-xl hover:border-[#8FB8A3] hover:bg-[#1A1A1A] transition-all group"
         >
           <div className="w-10 h-10 bg-orange-500/10 rounded-lg flex items-center justify-center group-hover:bg-orange-500/20 transition-colors">
