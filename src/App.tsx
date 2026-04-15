@@ -1,5 +1,10 @@
-import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import LandingLayout from './layouts/LandingLayout';
+import InvestmentCriteria from './pages/InvestmentCriteria'
+import Leadership from './pages/Leadership'
+import CaseStudies from './pages/CaseStudies'
+import News from './pages/News'
+import Careers from './pages/Careers'
 import { AuthProvider } from './portal/contexts/AuthContext';
 import { DataProvider } from './portal/contexts/DataContext';
 import PortalLayout from './portal/components/Layout';
@@ -32,22 +37,25 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<LandingLayout />} />
-        <Route
-          path="/portal/*"
-          element={
-            <AuthProvider>
-              <DataProvider>
-                <PortalRoutes />
-              </DataProvider>
-            </AuthProvider>
-          }
-        />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </BrowserRouter>
+    <Routes>
+      <Route path="/" element={<LandingLayout />} />
+      <Route path="/investment-criteria" element={<InvestmentCriteria />} />
+      <Route path="/leadership" element={<Leadership />} />
+      <Route path="/case-studies" element={<CaseStudies />} />
+      <Route path="/news" element={<News />} />
+      <Route path="/careers" element={<Careers />} />
+      <Route
+        path="/portal/*"
+        element={
+          <AuthProvider>
+            <DataProvider>
+              <PortalRoutes />
+            </DataProvider>
+          </AuthProvider>
+        }
+      />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
 
