@@ -12,11 +12,11 @@ import {
   createDocument,
   deleteDocument,
 } from '../controllers/admin.controller';
-import { requireAdmin } from '../middleware/auth';
+import { requireAuth, requireAdmin } from '../middleware/auth';
 
 const router = Router();
 
-router.use(requireAdmin);
+router.use(requireAuth, requireAdmin);
 
 router.get('/dashboard', getDashboard);
 router.get('/users', getUsers);

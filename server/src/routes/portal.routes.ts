@@ -11,11 +11,11 @@ import {
   getMessages,
   sendMessage,
 } from '../controllers/portal.controller';
-import { requireInvestor } from '../middleware/auth';
+import { requireAuth, requireInvestor } from '../middleware/auth';
 
 const router = Router();
 
-router.use(requireInvestor);
+router.use(requireAuth, requireInvestor);
 
 router.get('/dashboard', getDashboard);
 router.get('/profile', getProfile);
