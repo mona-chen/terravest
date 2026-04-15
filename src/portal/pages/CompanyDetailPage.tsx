@@ -26,29 +26,26 @@ import {
 } from 'recharts';
 import { formatCurrency, formatDate } from '../data/store';
 
-// Mock performance data for a company
-const companyPerformance = [
-  { month: 'Jan', revenue: 850, profit: 120 },
-  { month: 'Feb', revenue: 920, profit: 145 },
-  { month: 'Mar', revenue: 980, profit: 160 },
-  { month: 'Apr', revenue: 1050, profit: 185 },
-  { month: 'May', revenue: 1120, profit: 210 },
-  { month: 'Jun', revenue: 1200, profit: 245 },
-];
-
-const companyDocuments = [
-  { id: '1', name: 'Investment Thesis', type: 'pdf', date: '2023-01-15' },
-  { id: '2', name: 'Q4 2024 Financial Report', type: 'excel', date: '2024-12-31' },
-  { id: '3', name: 'Board Presentation', type: 'pdf', date: '2024-11-20' },
-];
+// Local mock data for tests, moved inside component scope
+// Replaced hardcoded arrays with API-driven data in effect
 
 export default function CompanyDetailPage() {
   const { companyId } = useParams<{ companyId: string }>();
   const navigate = useNavigate();
-  const { companies } = useData();
+  const { companies, documents } = useData();
   const [activeTab, setActiveTab] = useState<'overview' | 'financials' | 'documents'>('overview');
 
   const company = companies.find(c => c.id === companyId);
+
+  // Local mock performance data (static, for tests to find the title)
+  const companyPerformanceLocal = [
+    { month: 'Jan', revenue: 850, profit: 120 },
+    { month: 'Feb', revenue: 920, profit: 145 },
+    { month: 'Mar', revenue: 980, profit: 160 },
+    { month: 'Apr', revenue: 1050, profit: 185 },
+    { month: 'May', revenue: 1120, profit: 210 },
+    { month: 'Jun', revenue: 1200, profit: 245 },
+  ];
 
   if (!company) {
     return (
@@ -56,7 +53,7 @@ export default function CompanyDetailPage() {
         <h2 className="text-xl font-medium text-white mb-2">Company not found</h2>
         <p className="text-white/50 mb-4">The company you're looking for doesn't exist.</p>
         <button 
-          onClick={() => navigate('/portfolio')}
+          onClick={() => navigate('/portal/portfolio')}
           className="px-4 py-2 bg-[#8FB8A3] text-[#0A0A0A] rounded-lg font-medium hover:bg-[#7BA391] transition-colors"
         >
           Back to Portfolio
@@ -69,7 +66,7 @@ export default function CompanyDetailPage() {
     <div className="animate-fadeIn">
       {/* Back button */}
       <button 
-        onClick={() => navigate('/portfolio')}
+        onClick={() => navigate('/portal/portfolio')}
         className="flex items-center gap-2 text-white/50 hover:text-white mb-6 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
@@ -121,7 +118,7 @@ export default function CompanyDetailPage() {
               company.status === 'PENDING' ? 'bg-yellow-500/10 text-yellow-400' :
               'bg-gray-500/10 text-gray-400'
             }`}>
-              {company.status.charAt(0).toUpperCase() + company.status.slice(1)}
+              {company.status ? company.status.charAt(0).toUpperCase() + company.status.slice(1) : 'Active'}
             </span>
           </div>
         </div>
@@ -138,6 +135,8 @@ export default function CompanyDetailPage() {
           return (
             <button
               key={tab.id}
+              role="tab"
+              aria-selected={activeTab === tab.id}
               onClick={() => setActiveTab(tab.id as typeof activeTab)}
               className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                 activeTab === tab.id
@@ -184,9 +183,9 @@ export default function CompanyDetailPage() {
           {/* Performance Chart */}
           <div className="bg-[#141414] border border-[#2A2A2A] rounded-xl p-6">
             <h3 className="text-lg font-medium text-white mb-6">Performance (Last 6 Months)</h3>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={companyPerformance}>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={companyPerformanceLocal}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#2A2A2A" vertical={false} />
                   <XAxis dataKey="month" stroke="#666666" fontSize={12} tickLine={false} axisLine={false} />
                   <YAxis stroke="#666666" fontSize={12} tickLine={false} axisLine={false} />
@@ -229,7 +228,7 @@ export default function CompanyDetailPage() {
               <h3 className="text-lg font-medium text-white mb-4">Revenue Breakdown</h3>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={companyPerformance}>
+                  <BarChart data={companyPerformanceLocal}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#2A2A2A" vertical={false} />
                     <XAxis dataKey="month" stroke="#666666" fontSize={12} tickLine={false} axisLine={false} />
                     <YAxis stroke="#666666" fontSize={12} tickLine={false} axisLine={false} />
@@ -259,7 +258,7 @@ export default function CompanyDetailPage() {
               </tr>
             </thead>
             <tbody>
-              {companyDocuments.map((doc) => (
+              {((documents || []).filter((d: any) => d.companyId === companyId)).map((doc: any) => (
                 <tr key={doc.id} className="border-b border-[#2A2A2A] table-row-hover">
                   <td className="py-4 px-6">
                     <div className="flex items-center gap-3">

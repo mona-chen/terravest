@@ -23,7 +23,7 @@ import {
   Pie,
   Cell,
 } from 'recharts';
-import { performanceHistory, sectorAllocation, portfolioData } from '../data/mockData';
+import { useData } from '../contexts/DataContext';
 
 const quarterlyData = [
   { quarter: 'Q1 2024', revenue: 12.5, expenses: 8.2, profit: 4.3 },
@@ -38,21 +38,37 @@ const riskMetrics = [
   { name: 'High Risk', value: 20, color: '#EF4444' },
 ];
 
-const reports = [
-  { id: 1, name: 'Annual Performance Report 2024', type: 'Annual', date: 'Dec 31, 2024', status: 'Available' },
-  { id: 2, name: 'Q4 2024 Quarterly Report', type: 'Quarterly', date: 'Dec 31, 2024', status: 'Available' },
-  { id: 3, name: 'ESG Impact Assessment 2024', type: 'ESG', date: 'Dec 15, 2024', status: 'Available' },
-  { id: 4, name: 'Risk Assessment Q4 2024', type: 'Risk', date: 'Dec 10, 2024', status: 'Available' },
-  { id: 5, name: 'Portfolio Valuation Report', type: 'Valuation', date: 'Nov 30, 2024', status: 'Available' },
-];
+// Reports will come from API; local mocks retained for charts if needed
 
 export default function ReportsPage() {
   const [selectedPeriod] = useState('2024');
+  const { portfolio, performance, reports } = useData();
   const [activeTab, setActiveTab] = useState('overview');
 
-  const totalValue = portfolioData.reduce((sum, company) => sum + company.value, 0);
-  const totalChange = portfolioData.reduce((sum, company) => sum + company.change, 0);
-  const avgReturn = portfolioData.reduce((sum, company) => sum + company.changePercent, 0) / portfolioData.length;
+  const totalValue = (portfolio || []).reduce((sum, company) => sum + (company.value ?? 0), 0);
+  const totalChange = (portfolio || []).reduce((sum, company) => sum + (company.change ?? 0), 0);
+  const avgReturn = (portfolio || []).length
+    ? (portfolio as any[]).reduce((sum, company) => sum + (company.changePercent ?? 0), 0) / portfolio.length
+    : 0;
+
+  const performanceHistory = (performance || []).map((p: any, idx: number) => ({
+    month: p.month,
+    value: (p.portfolioValue || 0) / 1000000,
+    benchmark: ((p.portfolioValue || 0) * 0.98 + idx * 10) / 1000000,
+  }));
+
+  const sectorMap: Record<string, number> = {};
+  (portfolio || []).forEach((holding: any) => {
+    const sector = holding.company?.sector || 'Other';
+    sectorMap[sector] = (sectorMap[sector] || 0) + (holding.value || 0);
+  });
+  const sectorTotal = Object.values(sectorMap).reduce((a, b) => a + b, 0) || 1;
+  const sectorColors = ['#8FB8A3', '#22C55E', '#F59E0B', '#EF4444', '#3B82F6', '#A855F7'];
+  const sectorAllocation = Object.entries(sectorMap).map(([name, value], idx) => ({
+    name,
+    value: Math.round((value / sectorTotal) * 100),
+    color: sectorColors[idx % sectorColors.length],
+  }));
 
   return (
     <div className="space-y-6 animate-fadeIn">

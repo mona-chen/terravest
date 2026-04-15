@@ -11,6 +11,9 @@ import {
   getDocuments,
   createDocument,
   deleteDocument,
+  getPortfolios,
+  getOpportunities,
+  getAnalytics,
 } from '../controllers/admin.controller';
 import { requireAuth, requireAdmin } from '../middleware/auth';
 
@@ -29,5 +32,8 @@ router.delete('/companies/:id', deleteCompany);
 router.get('/documents', getDocuments);
 router.post('/documents', createDocument);
 router.delete('/documents/:id', deleteDocument);
+router.get('/portfolios', getPortfolios);
+router.get('/opportunities', getOpportunities);
+router.get('/analytics', getAnalytics);
 
 export default router;

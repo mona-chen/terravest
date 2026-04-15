@@ -7,7 +7,6 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// Extended data model for TerraVest seed data ( Wave 3 )
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
@@ -59,10 +58,19 @@ model Investor {
 model Company {
   id          String   @id @default(uuid())
   name        String   @unique
+  description String   @default("")
   sector      String
+  founded     String   @default("")
+  headquarters String  @default("")
+  website     String?
+  logo        String?
   valuation   Decimal
   revenue     Decimal
   employees   Int
+  metricsRevenueGrowth Decimal @default(0)
+  metricsProfitMargin  Decimal @default(0)
+  metricsCustomerCount Int     @default(0)
+  metricsMarketShare   Decimal @default(0)
   createdAt   DateTime @default(now())
 
   portfolioHoldings PortfolioHolding[]
@@ -78,6 +86,7 @@ model PortfolioHolding {
   companyId   String
   shares      Decimal
   purchasePrice Decimal
+  currentPrice  Decimal @default(0)
   status      PortfolioStatus @default(ACTIVE)
   createdAt   DateTime @default(now())
 }
@@ -136,8 +145,11 @@ model Opportunity {
   company       Company @relation(fields: [companyId], references: [id])
   companyId     String
   title         String
+  description   String @default("")
   targetAmount  Decimal
+  raisedAmount  Decimal @default(0)
   minimumInvestment Decimal
+  maxInvestment Decimal?
   status        OpportunityStatus @default(OPEN)
   createdAt     DateTime @default(now())
 }
@@ -151,8 +163,11 @@ model CapitalCall {
   id          String           @id @default(uuid())
   investor    Investor         @relation(fields: [investorId], references: [id])
   investorId  String
+  title       String           @default("Capital Call")
+  description String           @default("")
   amount      Decimal
   dueDate     DateTime
+  paidAt      DateTime?
   status      CapitalCallStatus  @default(PENDING)
   createdAt   DateTime @default(now())
 }

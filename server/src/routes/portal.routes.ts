@@ -10,6 +10,13 @@ import {
   markNotificationRead,
   getMessages,
   sendMessage,
+  getOpportunities,
+  getCapitalCalls,
+  getTaxDocuments,
+  getCompliance,
+  getReports,
+  getSettings,
+  updateSettings,
 } from '../controllers/portal.controller';
 import { requireAuth, requireInvestor } from '../middleware/auth';
 
@@ -27,5 +34,12 @@ router.get('/notifications', getNotifications);
 router.patch('/notifications/:id/read', markNotificationRead);
 router.get('/messages', getMessages);
 router.post('/messages', sendMessage);
+router.get('/opportunities', getOpportunities);
+router.get('/capital-calls', getCapitalCalls);
+router.get('/tax-documents', getTaxDocuments);
+router.get('/compliance', getCompliance);
+router.get('/reports', getReports);
+router.get('/settings', getSettings);
+router.patch('/settings', updateSettings);
 
 export default router;

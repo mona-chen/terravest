@@ -133,13 +133,13 @@ export default function MessagesPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button className="p-2 text-white/40 hover:text-white hover:bg-[#2A2A2A] rounded-lg transition-colors">
+                  <button title="Star" className="p-2 text-white/40 hover:text-white hover:bg-[#2A2A2A] rounded-lg transition-colors">
                     <Star className="w-4 h-4" />
                   </button>
-                  <button className="p-2 text-white/40 hover:text-white hover:bg-[#2A2A2A] rounded-lg transition-colors">
+                  <button title="Archive" className="p-2 text-white/40 hover:text-white hover:bg-[#2A2A2A] rounded-lg transition-colors">
                     <Archive className="w-4 h-4" />
                   </button>
-                  <button className="p-2 text-white/40 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors">
+                  <button title="Delete" className="p-2 text-white/40 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors">
                     <Trash2 className="w-4 h-4" />
                   </button>
                   <button className="p-2 text-white/40 hover:text-white hover:bg-[#2A2A2A] rounded-lg transition-colors">
@@ -178,6 +178,7 @@ export default function MessagesPage() {
                     <button 
                       onClick={handleSendReply}
                       disabled={!replyContent.trim()}
+                      aria-label="Send"
                       className="p-3 bg-[#8FB8A3] text-[#0A0A0A] rounded-lg hover:bg-[#7BA391] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       <Send className="w-5 h-5" />

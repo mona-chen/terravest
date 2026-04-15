@@ -2,15 +2,8 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Admin Dashboard', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/portal');
-    await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
-    await page.reload();
-    await page.goto('/portal');
-    await page.getByPlaceholder(/investor@terravest.cm/i).fill('admin@terravest.cm');
-    await page.getByPlaceholder("••••••••").fill('admin123');
-    await page.getByRole('button', { name: /Sign in/i }).click();
-    await page.waitForURL(/.*dashboard/, { timeout: 15000 });
     await page.goto('/portal/admin/dashboard');
+    await expect(page).toHaveURL(/.*admin\/dashboard/);
   });
 
   test('should display admin dashboard header', async ({ page }) => {
@@ -52,15 +45,8 @@ test.describe('Admin Dashboard', () => {
 
 test.describe('Admin Users Management', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/portal');
-    await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
-    await page.reload();
-    await page.goto('/portal');
-    await page.getByPlaceholder(/investor@terravest.cm/i).fill('admin@terravest.cm');
-    await page.getByPlaceholder("••••••••").fill('admin123');
-    await page.getByRole('button', { name: /Sign in/i }).click();
-    await page.waitForURL(/.*dashboard/, { timeout: 15000 });
     await page.goto('/portal/admin/users');
+    await expect(page).toHaveURL(/.*admin\/users/);
   });
 
   test('should display users list', async ({ page }) => {
@@ -92,15 +78,8 @@ test.describe('Admin Users Management', () => {
 
 test.describe('Admin Portfolios Management', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/portal');
-    await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
-    await page.reload();
-    await page.goto('/portal');
-    await page.getByPlaceholder(/investor@terravest.cm/i).fill('admin@terravest.cm');
-    await page.getByPlaceholder("••••••••").fill('admin123');
-    await page.getByRole('button', { name: /Sign in/i }).click();
-    await page.waitForURL(/.*dashboard/, { timeout: 15000 });
     await page.goto('/portal/admin/portfolios');
+    await expect(page).toHaveURL(/.*admin\/portfolios/);
   });
 
   test('should display portfolios list', async ({ page }) => {
@@ -117,15 +96,8 @@ test.describe('Admin Portfolios Management', () => {
 
 test.describe('Admin Opportunities Management', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/portal');
-    await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
-    await page.reload();
-    await page.goto('/portal');
-    await page.getByPlaceholder(/investor@terravest.cm/i).fill('admin@terravest.cm');
-    await page.getByPlaceholder("••••••••").fill('admin123');
-    await page.getByRole('button', { name: /Sign in/i }).click();
-    await page.waitForURL(/.*dashboard/, { timeout: 15000 });
     await page.goto('/portal/admin/opportunities');
+    await expect(page).toHaveURL(/.*admin\/opportunities/);
   });
 
   test('should display opportunities list', async ({ page }) => {

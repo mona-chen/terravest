@@ -171,10 +171,11 @@ export default function ProfilePage() {
             <div className="space-y-6">
               {/* Full Name */}
               <div>
-                <label className="block text-sm text-white/50 mb-2">Full Name</label>
+                <label htmlFor="profile-name" className="block text-sm text-white/50 mb-2">Full Name</label>
                 <div className="relative">
                   <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
                   <input
+                    id="profile-name"
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -186,10 +187,11 @@ export default function ProfilePage() {
 
               {/* Email */}
               <div>
-                <label className="block text-sm text-white/50 mb-2">Email Address</label>
+                <label htmlFor="profile-email" className="block text-sm text-white/50 mb-2">Email Address</label>
                 <div className="relative">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
                   <input
+                    id="profile-email"
                     type="email"
                     value={formData.email}
                     disabled
@@ -201,10 +203,11 @@ export default function ProfilePage() {
 
               {/* Phone */}
               <div>
-                <label className="block text-sm text-white/50 mb-2">Phone Number</label>
+                <label htmlFor="profile-phone" className="block text-sm text-white/50 mb-2">Phone Number</label>
                 <div className="relative">
                   <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
                   <input
+                    id="profile-phone"
                     type="tel"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
@@ -217,10 +220,11 @@ export default function ProfilePage() {
 
               {/* Company */}
               <div>
-                <label className="block text-sm text-white/50 mb-2">Company (Optional)</label>
+                <label htmlFor="profile-company" className="block text-sm text-white/50 mb-2">Company (Optional)</label>
                 <div className="relative">
                   <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
                   <input
+                    id="profile-company"
                     type="text"
                     value={formData.company}
                     onChange={(e) => setFormData({ ...formData, company: e.target.value })}

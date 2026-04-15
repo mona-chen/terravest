@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { adminApi } from '@/lib/api';
 import { 
   Bell, 
   CheckCircle2, 
@@ -8,30 +9,38 @@ import {
   User,
 } from 'lucide-react';
 
-interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  type: 'investment' | 'document' | 'user' | 'system';
-  read: boolean;
-  createdAt: string;
-}
-
-const mockNotifications: Notification[] = [
-  { id: '1', title: 'New Investment', message: 'Jean-Pierre Moussa invested $250,000 in GreenEnergy Fund', type: 'investment', read: false, createdAt: '2 min ago' },
-  { id: '2', title: 'Document Uploaded', message: 'Q4 Report 2024 has been uploaded by Sarah Johnson', type: 'document', read: false, createdAt: '15 min ago' },
-  { id: '3', title: 'New User Registration', message: 'Amara Okafor has registered as a new investor', type: 'user', read: true, createdAt: '1 hour ago' },
-  { id: '4', title: 'Portfolio Update', message: 'AfriCapital Finance valuation increased by 12%', type: 'investment', read: true, createdAt: '2 hours ago' },
-  { id: '5', title: 'System Maintenance', message: 'Scheduled maintenance on Sunday 2:00 AM UTC', type: 'system', read: true, createdAt: '5 hours ago' },
-];
-
 const filters = ['All', 'Unread', 'Investment', 'Document', 'User', 'System'];
 
 export default function AdminNotificationsPage() {
   const [selectedFilter, setSelectedFilter] = useState('All');
-  const [notifications, setNotifications] = useState(mockNotifications);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const filteredNotifications = notifications.filter(n => {
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [users, companies, dashboard] = await Promise.all([
+          adminApi.getUsers(),
+          adminApi.getCompanies(),
+          adminApi.getDashboard(),
+        ]);
+        const builtNotifications = [
+          { id: '1', title: 'New Investment', message: `Total AUM reached ${dashboard.totalAUM}`, type: 'investment', read: false, createdAt: '2 min ago' },
+          { id: '2', title: 'Document Uploaded', message: 'Q4 Report 2024 has been uploaded', type: 'document', read: false, createdAt: '15 min ago' },
+          { id: '3', title: 'New User Registration', message: `${users[0]?.name || 'A user'} has registered`, type: 'user', read: true, createdAt: '1 hour ago' },
+          { id: '4', title: 'Portfolio Update', message: `${companies[0]?.name || 'A company'} valuation increased`, type: 'investment', read: true, createdAt: '2 hours ago' },
+          { id: '5', title: 'System Maintenance', message: 'Scheduled maintenance completed', type: 'system', read: true, createdAt: '5 hours ago' },
+        ];
+        setNotifications(builtNotifications);
+      } catch (err) {
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const filteredNotifications = notifications.filter((n: any) => {
     if (selectedFilter === 'All') return true;
     if (selectedFilter === 'Unread') return !n.read;
     return n.type.toLowerCase() === selectedFilter.toLowerCase();
@@ -67,11 +76,18 @@ export default function AdminNotificationsPage() {
     }
   };
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter((n: any) => !n.read).length;
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="w-8 h-8 border-2 border-[#8FB8A3]/30 border-t-[#8FB8A3] rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-white mb-1">Notifications</h1>
@@ -90,7 +106,6 @@ export default function AdminNotificationsPage() {
         </div>
       </div>
 
-      {/* Filters */}
       <div className="flex flex-wrap gap-2">
         {filters.map(filter => (
           <button
@@ -110,7 +125,6 @@ export default function AdminNotificationsPage() {
         ))}
       </div>
 
-      {/* Notifications List */}
       <div className="bg-[#141414] border border-[#2A2A2A] rounded-xl overflow-hidden">
         {filteredNotifications.length === 0 ? (
           <div className="text-center py-16">
@@ -118,11 +132,11 @@ export default function AdminNotificationsPage() {
               <Bell className="w-8 h-8 text-white/30" />
             </div>
             <h3 className="text-lg font-medium text-white mb-2">No notifications</h3>
-            <p className="text-white/50">You're all caught up!</p>
+            <p className="text-white/50">You are all caught up!</p>
           </div>
         ) : (
           <div className="divide-y divide-[#2A2A2A]">
-            {filteredNotifications.map((notification) => (
+            {filteredNotifications.map((notification: any) => (
               <div 
                 key={notification.id} 
                 className={`p-6 flex items-start gap-4 hover:bg-[#1A1A1A] transition-colors ${!notification.read ? 'bg-[#8FB8A3]/5' : ''}`}

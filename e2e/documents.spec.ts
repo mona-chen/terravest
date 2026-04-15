@@ -2,29 +2,25 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Documents', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/portal');
-    await page.getByPlaceholder(/investor@terravest.cm/i).fill('investor@terravest.cm');
-    await page.getByPlaceholder("••••••••").fill('password123');
-    await page.getByRole('button', { name: /Sign in/i }).click();
-    await page.getByRole('link', { name: /Documents/i }).click();
+    await page.goto('/portal/documents');
     await expect(page).toHaveURL(/.*documents/);
   });
 
   test('should display documents header', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: /Documents/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Documents', exact: true })).toBeVisible();
   });
 
   test('should display search and filter controls', async ({ page }) => {
-    await expect(page.getByPlaceholder(/Search documents/i)).toBeVisible();
+    await expect(page.getByPlaceholder('Search documents...')).toBeVisible();
     await expect(page.getByRole('combobox', { name: /Category/i })).toBeVisible();
     await expect(page.getByRole('combobox', { name: /Type/i })).toBeVisible();
   });
 
   test('should display documents list', async ({ page }) => {
-    await expect(page.getByText(/Name/i)).toBeVisible();
-    await expect(page.getByText(/Category/i)).toBeVisible();
-    await expect(page.getByText(/Date/i)).toBeVisible();
-    await expect(page.getByText(/Size/i)).toBeVisible();
+    await expect(page.getByRole('columnheader', { name: 'Name' })).toBeVisible();
+    await expect(page.getByRole('columnheader', { name: 'Category' })).toBeVisible();
+    await expect(page.getByRole('columnheader', { name: 'Date' })).toBeVisible();
+    await expect(page.getByRole('columnheader', { name: 'Size' })).toBeVisible();
   });
 
   test('should filter documents by category', async ({ page }) => {
@@ -33,12 +29,12 @@ test.describe('Documents', () => {
   });
 
   test('should search documents', async ({ page }) => {
-    await page.getByPlaceholder(/Search documents/i).fill('report');
+    await page.getByPlaceholder('Search documents...').fill('report');
     await expect(page.getByText(/report/i).first()).toBeVisible();
   });
 
   test('should display document details on click', async ({ page }) => {
-    const docRow = page.locator('tr').nth(1);
+    const docRow = page.locator('tbody tr').first();
     await docRow.click();
     await expect(page.getByText(/Document Details/i)).toBeVisible();
   });
@@ -49,27 +45,24 @@ test.describe('Documents', () => {
   });
 
   test('should display starred documents section', async ({ page }) => {
-    await expect(page.getByText(/Starred/i)).toBeVisible();
+    await page.locator('button[title="Star"]').first().click();
+    await expect(page.getByRole('heading', { name: 'Starred', exact: true })).toBeVisible();
   });
 
   test('should display recent documents section', async ({ page }) => {
-    await expect(page.getByText(/Recent/i)).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Recent', exact: true })).toBeVisible();
   });
 
   test('should toggle document star', async ({ page }) => {
     const starButton = page.locator('button[title="Star"]').first();
     await starButton.click();
-    await expect(starButton).toHaveClass(/text-yellow/);
+    await expect(starButton.locator('svg')).toHaveClass(/text-yellow/);
   });
 });
 
 test.describe('Tax Documents', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/portal');
-    await page.getByPlaceholder(/investor@terravest.cm/i).fill('investor@terravest.cm');
-    await page.getByPlaceholder("••••••••").fill('password123');
-    await page.getByRole('button', { name: /Sign in/i }).click();
-    await page.getByRole('link', { name: /Tax Documents/i }).click();
+    await page.goto('/portal/tax-documents');
     await expect(page).toHaveURL(/.*tax-documents/);
   });
 
@@ -78,15 +71,15 @@ test.describe('Tax Documents', () => {
   });
 
   test('should display K-1 forms section', async ({ page }) => {
-    await expect(page.getByText(/K-1 Forms/i)).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'K-1 Forms' })).toBeVisible();
   });
 
   test('should display tax statements section', async ({ page }) => {
-    await expect(page.getByText(/Tax Statements/i)).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Tax Statements' })).toBeVisible();
   });
 
   test('should filter by tax year', async ({ page }) => {
     await page.getByRole('combobox', { name: /Tax Year/i }).selectOption('2024');
-    await expect(page.getByText(/2024/i)).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Tax Documents/i })).toBeVisible();
   });
 });

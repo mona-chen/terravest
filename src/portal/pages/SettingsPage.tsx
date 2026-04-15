@@ -11,15 +11,18 @@ import {
   Check,
   AlertCircle,
   Save,
+  User,
+  Monitor,
+  Moon,
+  Smartphone as DeviceIcon,
 } from 'lucide-react';
 
 export default function SettingsPage() {
-  const { changePassword, isLoading } = useAuth();
-  const [activeTab, setActiveTab] = useState<'notifications' | 'security'>('notifications');
+  const { changePassword, isLoading, user } = useAuth();
+  const [activeTab, setActiveTab] = useState<'account' | 'notifications' | 'security' | 'appearance'>('account');
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   
-  // Notification settings
   const [notificationSettings, setNotificationSettings] = useState({
     emailNotifications: true,
     smsNotifications: false,
@@ -30,7 +33,6 @@ export default function SettingsPage() {
     marketNews: false,
   });
 
-  // Password change
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -41,6 +43,8 @@ export default function SettingsPage() {
     new: false,
     confirm: false,
   });
+
+  const [darkMode, setDarkMode] = useState(true);
 
   const handleNotificationChange = (key: keyof typeof notificationSettings) => {
     setNotificationSettings(prev => ({ ...prev, [key]: !prev[key] }));
@@ -64,15 +68,20 @@ export default function SettingsPage() {
     }
   };
 
+  const tabs = [
+    { id: 'account', label: 'Account', icon: User },
+    { id: 'notifications', label: 'Notifications', icon: Bell },
+    { id: 'security', label: 'Security', icon: Shield },
+    { id: 'appearance', label: 'Appearance', icon: Monitor },
+  ] as const;
+
   return (
     <div className="max-w-4xl mx-auto animate-fadeIn">
-      {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-semibold text-white mb-1">Settings</h1>
         <p className="text-white/50">Manage your account settings and preferences</p>
       </div>
 
-      {/* Success Message */}
       {showSuccess && (
         <div className="mb-6 p-4 bg-green-500/10 border border-green-500/30 rounded-lg flex items-center gap-3 animate-slideUp">
           <Check className="w-5 h-5 text-green-400" />
@@ -80,39 +89,66 @@ export default function SettingsPage() {
         </div>
       )}
 
-      {/* Tabs */}
-      <div className="flex gap-1 bg-[#141414] border border-[#2A2A2A] rounded-lg p-1 w-fit mb-6">
-        <button
-          onClick={() => setActiveTab('notifications')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-            activeTab === 'notifications'
-              ? 'bg-[#8FB8A3] text-[#0A0A0A]'
-              : 'text-white/50 hover:text-white hover:bg-[#1A1A1A]'
-          }`}
-        >
-          <Bell className="w-4 h-4" />
-          Notifications
-        </button>
-        <button
-          onClick={() => setActiveTab('security')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-            activeTab === 'security'
-              ? 'bg-[#8FB8A3] text-[#0A0A0A]'
-              : 'text-white/50 hover:text-white hover:bg-[#1A1A1A]'
-          }`}
-        >
-          <Shield className="w-4 h-4" />
-          Security
-        </button>
+      <div className="flex gap-1 bg-[#141414] border border-[#2A2A2A] rounded-lg p-1 w-fit mb-6 flex-wrap">
+        {tabs.map((tab) => {
+          const Icon = tab.icon;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                activeTab === tab.id
+                  ? 'bg-[#8FB8A3] text-[#0A0A0A]'
+                  : 'text-white/50 hover:text-white hover:bg-[#1A1A1A]'
+              }`}
+            >
+              <Icon className="w-4 h-4" />
+              {tab.label}
+            </button>
+          );
+        })}
       </div>
 
-      {/* Notifications Tab */}
+      {activeTab === 'account' && (
+        <div className="bg-[#141414] border border-[#2A2A2A] rounded-xl p-6">
+          <h3 className="text-lg font-medium text-white mb-6">Account Information</h3>
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm text-white/50 mb-2">Full Name</label>
+              <input
+                type="text"
+                value={user?.name || ''}
+                disabled
+                className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg px-4 py-3 text-white/50 cursor-not-allowed"
+              />
+            </div>
+            <div>
+              <label className="block text-sm text-white/50 mb-2">Email Address</label>
+              <input
+                type="email"
+                value={user?.email || ''}
+                disabled
+                className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg px-4 py-3 text-white/50 cursor-not-allowed"
+              />
+            </div>
+            <div>
+              <label className="block text-sm text-white/50 mb-2">Role</label>
+              <input
+                type="text"
+                value={user?.role || ''}
+                disabled
+                className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg px-4 py-3 text-white/50 cursor-not-allowed"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       {activeTab === 'notifications' && (
         <div className="bg-[#141414] border border-[#2A2A2A] rounded-xl p-6">
           <h3 className="text-lg font-medium text-white mb-6">Notification Preferences</h3>
           
           <div className="space-y-6">
-            {/* Email Notifications */}
             <div className="flex items-center justify-between p-4 bg-[#1A1A1A] rounded-lg">
               <div className="flex items-start gap-4">
                 <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
@@ -134,7 +170,6 @@ export default function SettingsPage() {
               </label>
             </div>
 
-            {/* SMS Notifications */}
             <div className="flex items-center justify-between p-4 bg-[#1A1A1A] rounded-lg">
               <div className="flex items-start gap-4">
                 <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
@@ -156,7 +191,6 @@ export default function SettingsPage() {
               </label>
             </div>
 
-            {/* Divider */}
             <div className="border-t border-[#2A2A2A] pt-6">
               <h4 className="text-sm font-medium text-white/70 mb-4">Notification Types</h4>
               
@@ -190,20 +224,18 @@ export default function SettingsPage() {
         </div>
       )}
 
-      {/* Security Tab */}
       {activeTab === 'security' && (
         <div className="space-y-6">
-          {/* Change Password */}
           <div className="bg-[#141414] border border-[#2A2A2A] rounded-xl p-6">
             <h3 className="text-lg font-medium text-white mb-6">Change Password</h3>
             
             <div className="space-y-4 max-w-md">
-              {/* Current Password */}
               <div>
-                <label className="block text-sm text-white/50 mb-2">Current Password</label>
+                <label htmlFor="current-password" className="block text-sm text-white/50 mb-2">Current Password</label>
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
                   <input
+                    id="current-password"
                     type={showPasswords.current ? 'text' : 'password'}
                     value={passwordData.currentPassword}
                     onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
@@ -220,12 +252,12 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              {/* New Password */}
               <div>
-                <label className="block text-sm text-white/50 mb-2">New Password</label>
+                <label htmlFor="new-password" className="block text-sm text-white/50 mb-2">New Password</label>
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
                   <input
+                    id="new-password"
                     type={showPasswords.new ? 'text' : 'password'}
                     value={passwordData.newPassword}
                     onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
@@ -242,12 +274,12 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              {/* Confirm Password */}
               <div>
-                <label className="block text-sm text-white/50 mb-2">Confirm New Password</label>
+                <label htmlFor="confirm-password" className="block text-sm text-white/50 mb-2">Confirm New Password</label>
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
                   <input
+                    id="confirm-password"
                     type={showPasswords.confirm ? 'text' : 'password'}
                     value={passwordData.confirmPassword}
                     onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
@@ -287,7 +319,6 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {/* Two-Factor Authentication */}
           <div className="bg-[#141414] border border-[#2A2A2A] rounded-xl p-6">
             <div className="flex items-start justify-between">
               <div className="flex items-start gap-4">
@@ -300,22 +331,66 @@ export default function SettingsPage() {
                 </div>
               </div>
               <button className="px-4 py-2 border border-[#2A2A2A] text-white/70 rounded-lg text-sm hover:text-white hover:border-[#8FB8A3] transition-colors">
-                Enable
+                Enable 2FA
               </button>
             </div>
           </div>
 
-          {/* Security Notice */}
+          <div className="bg-[#141414] border border-[#2A2A2A] rounded-xl p-6">
+            <h3 className="text-lg font-medium text-white mb-4">Connected Devices</h3>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 bg-[#1A1A1A] rounded-lg">
+                <div className="flex items-center gap-3">
+                  <DeviceIcon className="w-5 h-5 text-white/50" />
+                  <div>
+                    <p className="text-sm text-white">Current Browser</p>
+                    <p className="text-xs text-white/40">Active now</p>
+                  </div>
+                </div>
+                <span className="text-xs text-green-400">Current</span>
+              </div>
+            </div>
+          </div>
+
           <div className="bg-yellow-500/5 border border-yellow-500/20 rounded-xl p-4">
             <div className="flex items-start gap-3">
               <AlertCircle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
               <div>
                 <h4 className="text-sm font-medium text-yellow-400 mb-1">Security Tip</h4>
-                <p className="text-sm text-white/50">
-                  Use a strong, unique password and enable two-factor authentication for maximum security. 
-                  Never share your credentials with anyone.
-                </p>
+                <p className="text-sm text-white/50">Use a strong, unique password and enable two-factor authentication for maximum security.</p>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'appearance' && (
+        <div className="bg-[#141414] border border-[#2A2A2A] rounded-xl p-6">
+          <h3 className="text-lg font-medium text-white mb-6">Appearance</h3>
+          
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-4 bg-[#1A1A1A] rounded-lg">
+              <div className="flex items-center gap-3">
+                <Moon className="w-5 h-5 text-white/50" />
+                <div>
+                  <p className="text-sm font-medium text-white">Dark Mode</p>
+                  <p className="text-xs text-white/40">Use dark theme across the platform</p>
+                </div>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={darkMode}
+                  onChange={() => {
+                    setDarkMode(!darkMode);
+                    setSuccessMessage('Appearance updated');
+                    setShowSuccess(true);
+                    setTimeout(() => setShowSuccess(false), 3000);
+                  }}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-[#2A2A2A] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#8FB8A3]"></div>
+              </label>
             </div>
           </div>
         </div>

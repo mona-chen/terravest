@@ -67,7 +67,7 @@ export default function NotificationsPage() {
               onClick={() => setFilter('all')}
               className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                 filter === 'all'
-                  ? 'bg-[#2A2A2A] text-white'
+                  ? 'bg-[#8FB8A3] text-[#0A0A0A]'
                   : 'text-white/50 hover:text-white'
               }`}
             >
@@ -77,7 +77,7 @@ export default function NotificationsPage() {
               onClick={() => setFilter('unread')}
               className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                 filter === 'unread'
-                  ? 'bg-[#2A2A2A] text-white'
+                  ? 'bg-[#8FB8A3] text-[#0A0A0A]'
                   : 'text-white/50 hover:text-white'
               }`}
             >
@@ -89,7 +89,7 @@ export default function NotificationsPage() {
               onClick={markAllNotificationsRead}
               className="px-4 py-2 text-sm text-[#8FB8A3] hover:bg-[#8FB8A3]/10 rounded-lg transition-colors"
             >
-              Mark all read
+              Mark all as read
             </button>
           )}
         </div>

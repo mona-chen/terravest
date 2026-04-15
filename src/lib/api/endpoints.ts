@@ -16,11 +16,18 @@ export const ENDPOINTS = {
     OPPORTUNITIES: '/portal/opportunities',
     CAPITAL_CALLS: '/portal/capital-calls',
     PERFORMANCE: '/portal/performance',
+    TAX_DOCUMENTS: '/portal/tax-documents',
+    COMPLIANCE: '/portal/compliance',
+    REPORTS: '/portal/reports',
+    SETTINGS: '/portal/settings',
   },
   ADMIN: {
     DASHBOARD: '/admin/dashboard',
     USERS: '/admin/users',
     COMPANIES: '/admin/companies',
     DOCUMENTS: '/admin/documents',
+    PORTFOLIOS: '/admin/portfolios',
+    OPPORTUNITIES: '/admin/opportunities',
+    ANALYTICS: '/admin/analytics',
   },
 } as const;

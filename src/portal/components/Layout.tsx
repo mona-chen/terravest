@@ -195,6 +195,7 @@ export default function Layout() {
             {/* Notifications */}
             <NavLink 
               to="/portal/notifications"
+              aria-label="Notifications"
               className="relative p-2 text-white/50 hover:text-white hover:bg-[#1A1A1A] rounded-lg transition-colors"
             >
               <Bell className="w-5 h-5" />

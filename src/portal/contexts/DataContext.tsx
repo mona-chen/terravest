@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useCallback, useEffect, type React
 import { portalApi } from '@/lib/api';
 import { useAuth } from './AuthContext';
 import type { Document, Notification, Message, Company, PortfolioHolding, Opportunity, CapitalCall } from '@/lib/api/types';
+import type { ComplianceData, ReportItem, SettingsData } from '@/lib/api/portal.api';
 
 interface PerformancePoint {
   month: string;
@@ -17,6 +18,10 @@ interface DataContextType {
   portfolio: PortfolioHolding[];
   opportunities: Opportunity[];
   capitalCalls: CapitalCall[];
+  taxDocuments: Document[];
+  compliance: ComplianceData | null;
+  reports: ReportItem[];
+  settings: SettingsData | null;
   performance: PerformancePoint[];
   isLoading: {
     documents: boolean;
@@ -26,6 +31,10 @@ interface DataContextType {
     portfolio: boolean;
     opportunities: boolean;
     capitalCalls: boolean;
+    taxDocuments: boolean;
+    compliance: boolean;
+    reports: boolean;
+    settings: boolean;
   };
   markNotificationRead: (id: string) => Promise<void>;
   markAllNotificationsRead: () => Promise<void>;
@@ -45,6 +54,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [portfolio, setPortfolio] = useState<PortfolioHolding[]>([]);
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [capitalCalls, setCapitalCalls] = useState<CapitalCall[]>([]);
+  const [taxDocuments, setTaxDocuments] = useState<Document[]>([]);
+  const [compliance, setCompliance] = useState<ComplianceData | null>(null);
+  const [reports, setReports] = useState<ReportItem[]>([]);
+  const [settings, setSettings] = useState<SettingsData | null>(null);
   const [performance] = useState<PerformancePoint[]>([
     { month: 'Jan', portfolioValue: 850000 },
     { month: 'Feb', portfolioValue: 920000 },
@@ -53,7 +66,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     { month: 'May', portfolioValue: 1120000 },
     { month: 'Jun', portfolioValue: 1200000 },
   ]);
-  
+
   const [isLoading, setIsLoading] = useState({
     documents: false,
     notifications: false,
@@ -62,6 +75,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
     portfolio: false,
     opportunities: false,
     capitalCalls: false,
+    taxDocuments: false,
+    compliance: false,
+    reports: false,
+    settings: false,
   });
 
   const fetchData = useCallback(async () => {
@@ -73,10 +90,17 @@ export function DataProvider({ children }: { children: ReactNode }) {
       portfolio: true,
       opportunities: true,
       capitalCalls: true,
+      taxDocuments: true,
+      compliance: true,
+      reports: true,
+      settings: true,
     });
 
     try {
-      const [docsRes, notifRes, msgRes, compRes, portRes, oppRes, ccRes] = await Promise.allSettled([
+      const [
+        docsRes, notifRes, msgRes, compRes, portRes, oppRes, ccRes,
+        taxRes, compRes2, repRes, setRes,
+      ] = await Promise.allSettled([
         portalApi.getDocuments(),
         portalApi.getNotifications(),
         portalApi.getMessages(),
@@ -84,6 +108,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
         portalApi.getPortfolio(),
         portalApi.getOpportunities(),
         portalApi.getCapitalCalls(),
+        portalApi.getTaxDocuments(),
+        portalApi.getCompliance(),
+        portalApi.getReports(),
+        portalApi.getSettings(),
       ]);
 
       if (docsRes.status === 'fulfilled') setDocuments(docsRes.value);
@@ -93,6 +121,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
       if (portRes.status === 'fulfilled') setPortfolio(portRes.value);
       if (oppRes.status === 'fulfilled') setOpportunities(oppRes.value);
       if (ccRes.status === 'fulfilled') setCapitalCalls(ccRes.value);
+      if (taxRes.status === 'fulfilled') setTaxDocuments(taxRes.value);
+      if (compRes2.status === 'fulfilled') setCompliance(compRes2.value);
+      if (repRes.status === 'fulfilled') setReports(repRes.value);
+      if (setRes.status === 'fulfilled') setSettings(setRes.value);
     } finally {
       setIsLoading({
         documents: false,
@@ -102,6 +134,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
         portfolio: false,
         opportunities: false,
         capitalCalls: false,
+        taxDocuments: false,
+        compliance: false,
+        reports: false,
+        settings: false,
       });
     }
   }, []);
@@ -157,6 +193,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
         portfolio,
         opportunities,
         capitalCalls,
+        taxDocuments,
+        compliance,
+        reports,
+        settings,
         performance,
         isLoading,
         markNotificationRead,

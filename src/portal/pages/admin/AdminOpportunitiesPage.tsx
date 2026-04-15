@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { adminApi } from '@/lib/api';
 import { 
   Search, 
   Filter, 
@@ -11,33 +12,6 @@ import {
   Download,
 } from 'lucide-react';
 
-interface Opportunity {
-  id: string;
-  name: string;
-  sector: string;
-  location: string;
-  targetRaise: number;
-  minInvestment: number;
-  expectedReturn: number;
-  duration: string;
-  stage: 'open' | 'closing' | 'funded';
-  progress: number;
-  raised: number;
-  investors: number;
-}
-
-const mockOpportunities: Opportunity[] = [
-  { id: '1', name: 'GreenEnergy Africa Fund II', sector: 'Energy', location: 'Cameroon, Ghana, Kenya', targetRaise: 50000000, minInvestment: 250000, expectedReturn: 22, duration: '5 years', stage: 'open', progress: 65, raised: 32500000, investors: 12 },
-  { id: '2', name: 'Tech Ventures Cameroon', sector: 'Technology', location: 'Douala, Cameroon', targetRaise: 15000000, minInvestment: 100000, expectedReturn: 35, duration: '7 years', stage: 'open', progress: 40, raised: 6000000, investors: 8 },
-  { id: '3', name: 'AgriBusiness Expansion', sector: 'Agriculture', location: 'Yaoundé Region, Cameroon', targetRaise: 25000000, minInvestment: 150000, expectedReturn: 18, duration: '4 years', stage: 'closing', progress: 88, raised: 22000000, investors: 15 },
-  { id: '4', name: 'Healthcare Infrastructure', sector: 'Healthcare', location: 'Multiple Cities, Cameroon', targetRaise: 35000000, minInvestment: 200000, expectedReturn: 20, duration: '6 years', stage: 'open', progress: 30, raised: 10500000, investors: 6 },
-  { id: '5', name: 'Real Estate Development Fund', sector: 'Real Estate', location: 'Douala & Yaoundé, Cameroon', targetRaise: 40000000, minInvestment: 300000, expectedReturn: 25, duration: '5 years', stage: 'open', progress: 50, raised: 20000000, investors: 10 },
-  { id: '6', name: 'Logistics & Transportation', sector: 'Infrastructure', location: 'Central Africa Region', targetRaise: 30000000, minInvestment: 200000, expectedReturn: 19, duration: '5 years', stage: 'closing', progress: 92, raised: 27600000, investors: 14 },
-];
-
-const sectors = ['All', 'Energy', 'Technology', 'Agriculture', 'Healthcare', 'Real Estate', 'Infrastructure'];
-const stages = ['All', 'Open', 'Closing', 'Funded'];
-
 const formatCurrency = (value: number) => {
   if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
   if (value >= 1000) return `$${(value / 1000).toFixed(0)}K`;
@@ -45,36 +19,64 @@ const formatCurrency = (value: number) => {
 };
 
 export default function AdminOpportunitiesPage() {
+  const [opportunities, setOpportunities] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSector, setSelectedSector] = useState('All');
   const [selectedStage, setSelectedStage] = useState('All');
   const [showFilters, setShowFilters] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [, setShowEditModal] = useState(false);
-  const [, setSelectedOpportunity] = useState<Opportunity | null>(null);
 
-  const filteredOpportunities = mockOpportunities.filter(o => {
-    const matchesSearch = o.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         o.sector.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesSector = selectedSector === 'All' || o.sector === selectedSector;
-    const matchesStage = selectedStage === 'All' || o.stage.toLowerCase() === selectedStage.toLowerCase();
+  useEffect(() => {
+    const fetchOpportunities = async () => {
+      try {
+        const data = await adminApi.getOpportunities();
+        setOpportunities(data);
+      } catch (err) {
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchOpportunities();
+  }, []);
+
+  const sectors = ['All', ...Array.from(new Set(opportunities.map((o: any) => o?.company?.sector).filter(Boolean)))];
+  const stages = ['All', 'Open', 'Closing', 'Funded'];
+
+  const mapStatus = (s?: string) => {
+    if (!s) return 'open';
+    if (s.toUpperCase() === 'OPEN') return 'open';
+    if (s.toUpperCase() === 'CLOSED') return 'closing';
+    return 'funded';
+  };
+
+  const filteredOpportunities = opportunities.filter((opp: any) => {
+    const title = opp.title || '';
+    const sector = opp?.company?.sector || '';
+    const matchesSearch = title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         sector.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSector = selectedSector === 'All' || sector === selectedSector;
+    const status = mapStatus(opp.status);
+    const matchesStage = selectedStage === 'All' || status === selectedStage.toLowerCase();
     return matchesSearch && matchesSector && matchesStage;
   });
 
-  const totalTarget = filteredOpportunities.reduce((sum, o) => sum + o.targetRaise, 0);
-  const totalRaised = filteredOpportunities.reduce((sum, o) => sum + o.raised, 0);
+  const totalTarget = filteredOpportunities.reduce((sum: number, o: any) => sum + (o.targetAmount || 0), 0);
+  const totalRaised = filteredOpportunities.reduce((sum: number, o: any) => sum + (o.raisedAmount || 0), 0);
   const avgReturn = filteredOpportunities.length > 0 
-    ? filteredOpportunities.reduce((sum, o) => sum + o.expectedReturn, 0) / filteredOpportunities.length 
+    ? filteredOpportunities.reduce((sum: number) => sum + 20, 0) / filteredOpportunities.length 
     : 0;
 
-  const handleEdit = (opportunity: Opportunity) => {
-    setSelectedOpportunity(opportunity);
-    setShowEditModal(true);
-  };
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="w-8 h-8 border-2 border-[#8FB8A3]/30 border-t-[#8FB8A3] rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-white mb-1">Investment Opportunities</h1>
@@ -95,7 +97,6 @@ export default function AdminOpportunitiesPage() {
         </div>
       </div>
 
-      {/* Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-[#141414] border border-[#2A2A2A] rounded-xl p-5">
           <p className="text-white/50 text-sm mb-1">Total Target</p>
@@ -111,11 +112,10 @@ export default function AdminOpportunitiesPage() {
         </div>
         <div className="bg-[#141414] border border-[#2A2A2A] rounded-xl p-5">
           <p className="text-white/50 text-sm mb-1">Open</p>
-          <p className="text-xl font-semibold text-white">{filteredOpportunities.filter(o => o.stage === 'open').length}</p>
+          <p className="text-xl font-semibold text-white">{filteredOpportunities.filter((o: any) => mapStatus(o.status) === 'open').length}</p>
         </div>
       </div>
 
-      {/* Filters */}
       <div className="bg-[#141414] border border-[#2A2A2A] rounded-xl p-4">
         <div className="flex flex-col lg:flex-row gap-4">
           <div className="flex-1 relative">
@@ -151,7 +151,7 @@ export default function AdminOpportunitiesPage() {
                 onChange={(e) => setSelectedSector(e.target.value)}
                 className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg px-4 py-2.5 text-white focus:border-[#8FB8A3] transition-colors"
               >
-                {sectors.map(s => <option key={s} value={s}>{s}</option>)}
+                {sectors.map((s: string) => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
             <div>
@@ -168,81 +168,78 @@ export default function AdminOpportunitiesPage() {
         )}
       </div>
 
-      {/* Opportunities Grid */}
       <div className="grid lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        {filteredOpportunities.map((opportunity) => (
-          <div key={opportunity.id} className="bg-[#141414] border border-[#2A2A2A] rounded-xl p-6 card-hover">
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <div className="flex items-center gap-2 text-sm text-white/50 mb-1">
-                  <TrendingUp className="w-4 h-4" />
-                  <span>{opportunity.sector}</span>
+        {filteredOpportunities.map((opp: any) => {
+          const progress = opp.targetAmount > 0 ? ((opp.raisedAmount || 0) / opp.targetAmount) * 100 : 0;
+          const status = mapStatus(opp.status);
+          return (
+            <div key={opp.id} className="bg-[#141414] border border-[#2A2A2A] rounded-xl p-6 card-hover">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <div className="flex items-center gap-2 text-sm text-white/50 mb-1">
+                    <TrendingUp className="w-4 h-4" />
+                    <span>{opp.company?.sector || 'Sector'}</span>
+                  </div>
+                  <h3 className="text-lg font-medium text-white">{opp.title}</h3>
                 </div>
-                <h3 className="text-lg font-medium text-white">{opportunity.name}</h3>
+                <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+                  status === 'open' ? 'bg-green-500/20 text-green-400' :
+                  status === 'closing' ? 'bg-yellow-500/20 text-yellow-400' :
+                  'bg-gray-500/20 text-gray-400'
+                }`}>
+                  {status.charAt(0).toUpperCase() + status.slice(1)}
+                </span>
               </div>
-              <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                opportunity.stage === 'open' ? 'bg-green-500/20 text-green-400' :
-                opportunity.stage === 'closing' ? 'bg-yellow-500/20 text-yellow-400' :
-                'bg-gray-500/20 text-gray-400'
-              }`}>
-                {opportunity.stage.charAt(0).toUpperCase() + opportunity.stage.slice(1)}
-              </span>
-            </div>
 
-            <div className="flex items-center gap-2 text-sm text-white/50 mb-4">
-              <MapPin className="w-4 h-4" />
-              <span>{opportunity.location}</span>
-            </div>
+              <div className="flex items-center gap-2 text-sm text-white/50 mb-4">
+                <MapPin className="w-4 h-4" />
+                <span>{opp.company?.headquarters || 'Location'}</span>
+              </div>
 
-            {/* Progress */}
-            <div className="mb-4">
-              <div className="flex items-center justify-between text-sm mb-2">
-                <span className="text-white/50">Raised</span>
-                <span className="text-white">{formatCurrency(opportunity.raised)} of {formatCurrency(opportunity.targetRaise)}</span>
+              <div className="mb-4">
+                <div className="flex items-center justify-between text-sm mb-2">
+                  <span className="text-white/50">Raised</span>
+                  <span className="text-white">{formatCurrency(opp.raisedAmount || 0)} of {formatCurrency(opp.targetAmount || 0)}</span>
+                </div>
+                <div className="h-2 bg-[#2A2A2A] rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-[#8FB8A3] to-[#7BA391] rounded-full transition-all duration-500"
+                    style={{ width: `${Math.min(progress, 100)}%` }}
+                  />
+                </div>
+                <p className="text-xs text-white/40 mt-1">{progress.toFixed(0)}% funded</p>
               </div>
-              <div className="h-2 bg-[#2A2A2A] rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-gradient-to-r from-[#8FB8A3] to-[#7BA391] rounded-full transition-all duration-500"
-                  style={{ width: `${opportunity.progress}%` }}
-                />
-              </div>
-              <p className="text-xs text-white/40 mt-1">{opportunity.progress}% funded • {opportunity.investors} investors</p>
-            </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-4 mb-4 py-4 border-t border-b border-[#2A2A2A]">
-              <div>
-                <p className="text-xs text-white/40 mb-1">Min. Investment</p>
-                <p className="text-sm font-medium text-white">{formatCurrency(opportunity.minInvestment)}</p>
+              <div className="grid grid-cols-3 gap-4 mb-4 py-4 border-t border-b border-[#2A2A2A]">
+                <div>
+                  <p className="text-xs text-white/40 mb-1">Min. Investment</p>
+                  <p className="text-sm font-medium text-white">{formatCurrency(opp.minInvestment || opp.minimumInvestment || 0)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-white/40 mb-1">Expected Return</p>
+                  <p className="text-sm font-medium text-green-400">+20%</p>
+                </div>
+                <div>
+                  <p className="text-xs text-white/40 mb-1">Duration</p>
+                  <p className="text-sm font-medium text-white">5 years</p>
+                </div>
               </div>
-              <div>
-                <p className="text-xs text-white/40 mb-1">Expected Return</p>
-                <p className="text-sm font-medium text-green-400">+{opportunity.expectedReturn}%</p>
-              </div>
-              <div>
-                <p className="text-xs text-white/40 mb-1">Duration</p>
-                <p className="text-sm font-medium text-white">{opportunity.duration}</p>
-              </div>
-            </div>
 
-            {/* Actions */}
-            <div className="flex gap-2">
-              <button className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg text-white/70 hover:text-white hover:border-[#8FB8A3] transition-colors text-sm">
-                <Eye className="w-4 h-4" />
-                View
-              </button>
-              <button 
-                onClick={() => handleEdit(opportunity)}
-                className="flex items-center justify-center gap-2 px-3 py-2 bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg text-white/70 hover:text-white hover:border-[#8FB8A3] transition-colors"
-              >
-                <Edit2 className="w-4 h-4" />
-              </button>
-              <button className="flex items-center justify-center gap-2 px-3 py-2 bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg text-white/70 hover:text-red-400 hover:border-red-500/50 transition-colors">
-                <Trash2 className="w-4 h-4" />
-              </button>
+              <div className="flex gap-2">
+                <button className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg text-white/70 hover:text-white hover:border-[#8FB8A3] transition-colors text-sm">
+                  <Eye className="w-4 h-4" />
+                  View
+                </button>
+                <button className="flex items-center justify-center gap-2 px-3 py-2 bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg text-white/70 hover:text-white hover:border-[#8FB8A3] transition-colors">
+                  <Edit2 className="w-4 h-4" />
+                </button>
+                <button className="flex items-center justify-center gap-2 px-3 py-2 bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg text-white/70 hover:text-red-400 hover:border-red-500/50 transition-colors">
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {filteredOpportunities.length === 0 && (
@@ -255,56 +252,22 @@ export default function AdminOpportunitiesPage() {
         </div>
       )}
 
-      {/* Add Opportunity Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setShowAddModal(false)} />
-          <div className="relative bg-[#141414] border border-[#2A2A2A] rounded-xl w-full max-w-lg p-6 animate-fadeIn max-h-[90vh] overflow-y-auto">
+          <div className="relative bg-[#141414] border border-[#2A2A2A] rounded-xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
             <h3 className="text-xl font-semibold text-white mb-4">Create New Opportunity</h3>
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm text-white/50 mb-2">Opportunity Name</label>
-                <input type="text" className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg px-4 py-2.5 text-white focus:border-[#8FB8A3] transition-colors" placeholder="Enter name" />
-              </div>
+              <input type="text" className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg px-4 py-2.5 text-white" placeholder="Opportunity Name" />
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm text-white/50 mb-2">Sector</label>
-                  <select className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg px-4 py-2.5 text-white focus:border-[#8FB8A3] transition-colors">
-                    {sectors.filter(s => s !== 'All').map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm text-white/50 mb-2">Stage</label>
-                  <select className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg px-4 py-2.5 text-white focus:border-[#8FB8A3] transition-colors">
-                    <option>Open</option>
-                    <option>Closing</option>
-                    <option>Funded</option>
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm text-white/50 mb-2">Location</label>
-                <input type="text" className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg px-4 py-2.5 text-white focus:border-[#8FB8A3] transition-colors" placeholder="Enter location" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm text-white/50 mb-2">Target Raise</label>
-                  <input type="number" className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg px-4 py-2.5 text-white focus:border-[#8FB8A3] transition-colors" placeholder="$" />
-                </div>
-                <div>
-                  <label className="block text-sm text-white/50 mb-2">Min. Investment</label>
-                  <input type="number" className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg px-4 py-2.5 text-white focus:border-[#8FB8A3] transition-colors" placeholder="$" />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm text-white/50 mb-2">Expected Return (%)</label>
-                  <input type="number" className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg px-4 py-2.5 text-white focus:border-[#8FB8A3] transition-colors" placeholder="%" />
-                </div>
-                <div>
-                  <label className="block text-sm text-white/50 mb-2">Duration</label>
-                  <input type="text" className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg px-4 py-2.5 text-white focus:border-[#8FB8A3] transition-colors" placeholder="e.g. 5 years" />
-                </div>
+                <select className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg px-4 py-2.5 text-white">
+                  {sectors.filter((s: string) => s !== 'All').map((s: string) => <option key={s} value={s}>{s}</option>)}
+                </select>
+                <select className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg px-4 py-2.5 text-white">
+                  <option>Open</option>
+                  <option>Closing</option>
+                  <option>Funded</option>
+                </select>
               </div>
               <div className="flex gap-3 pt-4">
                 <button onClick={() => setShowAddModal(false)} className="flex-1 px-4 py-2.5 border border-[#2A2A2A] rounded-lg text-white/70 hover:text-white transition-colors">Cancel</button>

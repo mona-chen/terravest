@@ -12,6 +12,46 @@ import type {
   CapitalCall,
 } from './types';
 
+export interface ComplianceRequirement {
+  id: string;
+  category: 'identity' | 'address' | 'financial' | 'accreditation';
+  title: string;
+  description: string;
+  status: 'completed' | 'pending' | 'required';
+  documents: string[];
+  uploadedFiles?: string[];
+}
+
+export interface ComplianceData {
+  overall: string;
+  completed: number;
+  total: number;
+  lastUpdated: string;
+  nextReview: string;
+  requirements: ComplianceRequirement[];
+  kycStatus: string;
+  accreditationStatus: string;
+}
+
+export interface ReportItem {
+  id: string;
+  name: string;
+  type: string;
+  date: string;
+  status: string;
+}
+
+export interface SettingsData {
+  emailNotifications: boolean;
+  smsNotifications: boolean;
+  marketingEmails: boolean;
+  portfolioUpdates: boolean;
+  documentAlerts: boolean;
+  dividendNotifications: boolean;
+  marketNews: boolean;
+  twoFactorEnabled: boolean;
+}
+
 export const portalApi = {
   getDashboard: () =>
     apiClient.get<DashboardData>(ENDPOINTS.PORTAL.DASHBOARD),
@@ -48,4 +88,19 @@ export const portalApi = {
 
   getCapitalCalls: () =>
     apiClient.get<CapitalCall[]>(ENDPOINTS.PORTAL.CAPITAL_CALLS),
+
+  getTaxDocuments: () =>
+    apiClient.get<Document[]>(ENDPOINTS.PORTAL.TAX_DOCUMENTS),
+
+  getCompliance: () =>
+    apiClient.get<ComplianceData>(ENDPOINTS.PORTAL.COMPLIANCE),
+
+  getReports: () =>
+    apiClient.get<ReportItem[]>(ENDPOINTS.PORTAL.REPORTS),
+
+  getSettings: () =>
+    apiClient.get<SettingsData>(ENDPOINTS.PORTAL.SETTINGS),
+
+  updateSettings: (data: Partial<SettingsData>) =>
+    apiClient.patch<SettingsData>(ENDPOINTS.PORTAL.SETTINGS, data),
 };

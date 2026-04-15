@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { adminApi } from '@/lib/api';
 import { 
   Search, 
   Filter, 
@@ -12,30 +13,6 @@ import {
   Download,
 } from 'lucide-react';
 
-interface Portfolio {
-  id: string;
-  name: string;
-  sector: string;
-  valuation: number;
-  revenue: number;
-  growth: number;
-  status: 'active' | 'pending' | 'exited';
-  investors: number;
-  image: string;
-}
-
-const mockPortfolios: Portfolio[] = [
-  { id: '1', name: 'AfriCapital Finance', sector: 'Finance', valuation: 45000000, revenue: 12000000, growth: 18.5, status: 'active', investors: 12, image: '/sectors/finance.jpg' },
-  { id: '2', name: 'GreenEnergy Cameroon', sector: 'Energy', valuation: 32000000, revenue: 8500000, growth: 24.2, status: 'active', investors: 8, image: '/sectors/energy.jpg' },
-  { id: '3', name: 'TechVentures Douala', sector: 'Technology', valuation: 28000000, revenue: 6200000, growth: 35.8, status: 'active', investors: 15, image: '/sectors/technology.jpg' },
-  { id: '4', name: 'AgriProcess Yaoundé', sector: 'Agriculture', valuation: 22000000, revenue: 7800000, growth: 12.3, status: 'active', investors: 6, image: '/sectors/agriculture.jpg' },
-  { id: '5', name: 'HealthPlus Clinics', sector: 'Healthcare', valuation: 18000000, revenue: 5400000, growth: 15.7, status: 'pending', investors: 4, image: '/sectors/healthcare.jpg' },
-  { id: '6', name: 'UrbanDevelopments', sector: 'Real Estate', valuation: 38000000, revenue: 9200000, growth: 8.4, status: 'active', investors: 10, image: '/sectors/real-estate.jpg' },
-];
-
-const sectors = ['All', 'Finance', 'Energy', 'Technology', 'Agriculture', 'Healthcare', 'Real Estate', 'Infrastructure'];
-const statuses = ['All', 'Active', 'Pending', 'Exited'];
-
 const formatCurrency = (value: number) => {
   if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
   if (value >= 1000) return `$${(value / 1000).toFixed(0)}K`;
@@ -43,6 +20,8 @@ const formatCurrency = (value: number) => {
 };
 
 export default function PortfoliosPage() {
+  const [companies, setCompanies] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSector, setSelectedSector] = useState('All');
   const [selectedStatus, setSelectedStatus] = useState('All');
@@ -50,22 +29,45 @@ export default function PortfoliosPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showAddModal, setShowAddModal] = useState(false);
 
-  const filteredPortfolios = mockPortfolios.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         p.sector.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesSector = selectedSector === 'All' || p.sector === selectedSector;
-    const matchesStatus = selectedStatus === 'All' || p.status.toLowerCase() === selectedStatus.toLowerCase();
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      try {
+        const data = await adminApi.getCompanies();
+        setCompanies(data);
+      } catch (err) {
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchCompanies();
+  }, []);
+
+  const sectors = ['All', ...Array.from(new Set(companies.map((c: any) => c.sector).filter(Boolean)))];
+  const statuses = ['All', 'Active', 'Pending', 'Exited'];
+
+  const filteredCompanies = companies.filter((c: any) => {
+    const matchesSearch = (c.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         (c.sector || '').toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSector = selectedSector === 'All' || c.sector === selectedSector;
+    const matchesStatus = selectedStatus === 'All' || c.status === selectedStatus;
     return matchesSearch && matchesSector && matchesStatus;
   });
 
-  const totalValue = filteredPortfolios.reduce((sum, p) => sum + p.valuation, 0);
-  const avgGrowth = filteredPortfolios.length > 0 
-    ? filteredPortfolios.reduce((sum, p) => sum + p.growth, 0) / filteredPortfolios.length 
+  const totalValue = filteredCompanies.reduce((sum: number, c: any) => sum + (c.valuation || 0), 0);
+  const avgGrowth = filteredCompanies.length > 0 
+    ? filteredCompanies.reduce((sum: number, c: any) => sum + (c.metrics?.revenueGrowth || 0), 0) / filteredCompanies.length 
     : 0;
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="w-8 h-8 border-2 border-[#8FB8A3]/30 border-t-[#8FB8A3] rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-white mb-1">Portfolios</h1>
@@ -86,7 +88,6 @@ export default function PortfoliosPage() {
         </div>
       </div>
 
-      {/* Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-[#141414] border border-[#2A2A2A] rounded-xl p-5">
           <p className="text-white/50 text-sm mb-1">Total Value</p>
@@ -94,7 +95,7 @@ export default function PortfoliosPage() {
         </div>
         <div className="bg-[#141414] border border-[#2A2A2A] rounded-xl p-5">
           <p className="text-white/50 text-sm mb-1">Companies</p>
-          <p className="text-xl font-semibold text-white">{filteredPortfolios.length}</p>
+          <p className="text-xl font-semibold text-white">{filteredCompanies.length}</p>
         </div>
         <div className="bg-[#141414] border border-[#2A2A2A] rounded-xl p-5">
           <p className="text-white/50 text-sm mb-1">Avg. Growth</p>
@@ -102,11 +103,10 @@ export default function PortfoliosPage() {
         </div>
         <div className="bg-[#141414] border border-[#2A2A2A] rounded-xl p-5">
           <p className="text-white/50 text-sm mb-1">Active</p>
-          <p className="text-xl font-semibold text-[#8FB8A3]">{filteredPortfolios.filter(p => p.status === 'active').length}</p>
+          <p className="text-xl font-semibold text-[#8FB8A3]">{filteredCompanies.filter((c: any) => c.status === 'ACTIVE').length}</p>
         </div>
       </div>
 
-      {/* Filters */}
       <div className="bg-[#141414] border border-[#2A2A2A] rounded-xl p-4">
         <div className="flex flex-col lg:flex-row gap-4">
           <div className="flex-1 relative">
@@ -159,7 +159,7 @@ export default function PortfoliosPage() {
                 onChange={(e) => setSelectedSector(e.target.value)}
                 className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg px-4 py-2.5 text-white focus:border-[#8FB8A3] transition-colors"
               >
-                {sectors.map(s => <option key={s} value={s}>{s}</option>)}
+                {sectors.map((s: string) => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
             <div>
@@ -176,21 +176,25 @@ export default function PortfoliosPage() {
         )}
       </div>
 
-      {/* Grid View */}
       {viewMode === 'grid' ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredPortfolios.map((portfolio) => (
-            <div key={portfolio.id} className="bg-[#141414] border border-[#2A2A2A] rounded-xl overflow-hidden card-hover group">
+          {filteredCompanies.map((company: any) => (
+            <div key={company.id} className="bg-[#141414] border border-[#2A2A2A] rounded-xl overflow-hidden card-hover group">
               <div className="relative h-40 overflow-hidden">
-                <img src={portfolio.image} alt={portfolio.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                <img 
+                  src={`/sectors/${(company.sector || 'general').toLowerCase()}.jpg`} 
+                  alt={company.name}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  onError={(e) => { (e.target as HTMLImageElement).src = '/sectors/energy.jpg'; }}
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#141414] to-transparent" />
                 <div className="absolute top-3 right-3">
                   <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                    portfolio.status === 'active' ? 'bg-green-500/20 text-green-400' :
-                    portfolio.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
+                    company.status === 'ACTIVE' ? 'bg-green-500/20 text-green-400' :
+                    company.status === 'PENDING' ? 'bg-yellow-500/20 text-yellow-400' :
                     'bg-gray-500/20 text-gray-400'
                   }`}>
-                    {portfolio.status.charAt(0).toUpperCase() + portfolio.status.slice(1)}
+                    {company.status}
                   </span>
                 </div>
               </div>
@@ -198,28 +202,27 @@ export default function PortfoliosPage() {
               <div className="p-5">
                 <div className="flex items-center gap-2 text-sm text-white/50 mb-2">
                   <Building2 className="w-4 h-4" />
-                  <span>{portfolio.sector}</span>
+                  <span>{company.sector}</span>
                 </div>
                 
-                <h3 className="text-lg font-medium text-white mb-4">{portfolio.name}</h3>
+                <h3 className="text-lg font-medium text-white mb-4">{company.name}</h3>
                 
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
                     <p className="text-xs text-white/40 mb-1">Valuation</p>
-                    <p className="text-sm font-medium text-white">{formatCurrency(portfolio.valuation)}</p>
+                    <p className="text-sm font-medium text-white">{formatCurrency(company.valuation || 0)}</p>
                   </div>
                   <div>
                     <p className="text-xs text-white/40 mb-1">Revenue</p>
-                    <p className="text-sm font-medium text-white">{formatCurrency(portfolio.revenue)}</p>
+                    <p className="text-sm font-medium text-white">{formatCurrency(company.revenue || 0)}</p>
                   </div>
                 </div>
                 
                 <div className="flex items-center justify-between pt-4 border-t border-[#2A2A2A]">
-                  <div className={`flex items-center gap-1 text-sm ${portfolio.growth >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    {portfolio.growth >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-                    <span>+{portfolio.growth}%</span>
+                  <div className={`flex items-center gap-1 text-sm ${(company.metrics?.revenueGrowth || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                    {(company.metrics?.revenueGrowth || 0) >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+                    <span>+{(company.metrics?.revenueGrowth || 0).toFixed(1)}%</span>
                   </div>
-                  <span className="text-sm text-white/50">{portfolio.investors} investors</span>
                 </div>
                 
                 <div className="mt-4 flex gap-2">
@@ -236,7 +239,6 @@ export default function PortfoliosPage() {
           ))}
         </div>
       ) : (
-        /* List View */
         <div className="bg-[#141414] border border-[#2A2A2A] rounded-xl overflow-hidden">
           <table className="w-full">
             <thead>
@@ -251,29 +253,29 @@ export default function PortfoliosPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredPortfolios.map((portfolio) => (
-                <tr key={portfolio.id} className="border-b border-[#2A2A2A] hover:bg-[#1A1A1A] transition-colors">
+              {filteredCompanies.map((company: any) => (
+                <tr key={company.id} className="border-b border-[#2A2A2A] hover:bg-[#1A1A1A] transition-colors">
                   <td className="py-4 px-6">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-[#8FB8A3]/10 rounded-lg flex items-center justify-center">
                         <Building2 className="w-5 h-5 text-[#8FB8A3]" />
                       </div>
-                      <span className="font-medium text-white">{portfolio.name}</span>
+                      <span className="font-medium text-white">{company.name}</span>
                     </div>
                   </td>
-                  <td className="py-4 px-6 text-white/70">{portfolio.sector}</td>
-                  <td className="py-4 px-6 text-right font-medium text-white">{formatCurrency(portfolio.valuation)}</td>
-                  <td className="py-4 px-6 text-right text-white">{formatCurrency(portfolio.revenue)}</td>
-                  <td className={`py-4 px-6 text-right ${portfolio.growth >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    +{portfolio.growth}%
+                  <td className="py-4 px-6 text-white/70">{company.sector}</td>
+                  <td className="py-4 px-6 text-right font-medium text-white">{formatCurrency(company.valuation || 0)}</td>
+                  <td className="py-4 px-6 text-right text-white">{formatCurrency(company.revenue || 0)}</td>
+                  <td className={`py-4 px-6 text-right ${(company.metrics?.revenueGrowth || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                    +{(company.metrics?.revenueGrowth || 0).toFixed(1)}%
                   </td>
                   <td className="py-4 px-6 text-center">
                     <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-                      portfolio.status === 'active' ? 'bg-green-500/10 text-green-400' :
-                      portfolio.status === 'pending' ? 'bg-yellow-500/10 text-yellow-400' :
+                      company.status === 'ACTIVE' ? 'bg-green-500/10 text-green-400' :
+                      company.status === 'PENDING' ? 'bg-yellow-500/10 text-yellow-400' :
                       'bg-gray-500/10 text-gray-400'
                     }`}>
-                      {portfolio.status.charAt(0).toUpperCase() + portfolio.status.slice(1)}
+                      {company.status}
                     </span>
                   </td>
                   <td className="py-4 px-6">
@@ -296,7 +298,7 @@ export default function PortfoliosPage() {
         </div>
       )}
 
-      {filteredPortfolios.length === 0 && (
+      {filteredCompanies.length === 0 && (
         <div className="text-center py-16">
           <div className="w-16 h-16 bg-[#1A1A1A] rounded-full flex items-center justify-center mx-auto mb-4">
             <Search className="w-8 h-8 text-white/30" />
@@ -306,36 +308,19 @@ export default function PortfoliosPage() {
         </div>
       )}
 
-      {/* Add Company Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setShowAddModal(false)} />
-          <div className="relative bg-[#141414] border border-[#2A2A2A] rounded-xl w-full max-w-md p-6 animate-fadeIn">
+          <div className="relative bg-[#141414] border border-[#2A2A2A] rounded-xl w-full max-w-md p-6">
             <h3 className="text-xl font-semibold text-white mb-4">Add New Company</h3>
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm text-white/50 mb-2">Company Name</label>
-                <input type="text" className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg px-4 py-2.5 text-white focus:border-[#8FB8A3] transition-colors" placeholder="Enter company name" />
-              </div>
-              <div>
-                <label className="block text-sm text-white/50 mb-2">Sector</label>
-                <select className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg px-4 py-2.5 text-white focus:border-[#8FB8A3] transition-colors">
-                  {sectors.filter(s => s !== 'All').map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm text-white/50 mb-2">Valuation</label>
-                  <input type="number" className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg px-4 py-2.5 text-white focus:border-[#8FB8A3] transition-colors" placeholder="$" />
-                </div>
-                <div>
-                  <label className="block text-sm text-white/50 mb-2">Revenue</label>
-                  <input type="number" className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg px-4 py-2.5 text-white focus:border-[#8FB8A3] transition-colors" placeholder="$" />
-                </div>
-              </div>
+              <input type="text" className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg px-4 py-2.5 text-white" placeholder="Company Name" />
+              <select className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg px-4 py-2.5 text-white">
+                {sectors.filter((s: string) => s !== 'All').map((s: string) => <option key={s} value={s}>{s}</option>)}
+              </select>
               <div className="flex gap-3 pt-4">
-                <button onClick={() => setShowAddModal(false)} className="flex-1 px-4 py-2.5 border border-[#2A2A2A] rounded-lg text-white/70 hover:text-white transition-colors">Cancel</button>
-                <button onClick={() => setShowAddModal(false)} className="flex-1 px-4 py-2.5 bg-[#8FB8A3] text-[#0A0A0A] rounded-lg font-medium hover:bg-[#7BA391] transition-colors">Add Company</button>
+                <button onClick={() => setShowAddModal(false)} className="flex-1 px-4 py-2.5 border border-[#2A2A2A] rounded-lg text-white/70 hover:text-white">Cancel</button>
+                <button onClick={() => setShowAddModal(false)} className="flex-1 px-4 py-2.5 bg-[#8FB8A3] text-[#0A0A0A] rounded-lg font-medium">Add Company</button>
               </div>
             </div>
           </div>

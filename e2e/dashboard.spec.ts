@@ -2,12 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Dashboard', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/portal');
-    await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
-    await page.reload();
-    await page.getByPlaceholder(/investor@terravest.cm/i).fill('investor@terravest.cm');
-    await page.getByPlaceholder('••••••••').fill('password123');
-    await page.getByRole('button', { name: /Sign in/i }).click();
+    await page.goto('/portal/dashboard');
     await expect(page).toHaveURL(/.*dashboard/, { timeout: 15000 });
   });
 

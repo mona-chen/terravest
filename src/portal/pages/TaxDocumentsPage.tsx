@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useData } from '../contexts/DataContext';
 import { 
   FileText, 
   Download, 
@@ -11,92 +12,6 @@ import {
   Mail
 } from 'lucide-react';
 
-interface TaxDocument {
-  id: string;
-  name: string;
-  type: 'K1' | '1099' | 'Schedule' | 'Statement';
-  taxYear: number;
-  fund: string;
-  dateIssued: string;
-  status: 'available' | 'pending' | 'correction';
-  amount?: number;
-  description: string;
-}
-
-const taxDocuments: TaxDocument[] = [
-  {
-    id: 'K1-2023-001',
-    name: 'Schedule K-1 (Form 1065)',
-    type: 'K1',
-    taxYear: 2023,
-    fund: 'TerraVest Fund I',
-    dateIssued: '2024-03-15',
-    status: 'available',
-    amount: 45000,
-    description: 'Partner\'s share of income, deductions, credits',
-  },
-  {
-    id: 'K1-2023-002',
-    name: 'Schedule K-1 (Form 1065)',
-    type: 'K1',
-    taxYear: 2023,
-    fund: 'TerraVest Fund II',
-    dateIssued: '2024-03-15',
-    status: 'available',
-    amount: 12500,
-    description: 'Partner\'s share of income, deductions, credits',
-  },
-  {
-    id: '1099-2023-001',
-    name: 'Form 1099-DIV',
-    type: '1099',
-    taxYear: 2023,
-    fund: 'TerraVest Fund I',
-    dateIssued: '2024-02-01',
-    status: 'available',
-    amount: 8200,
-    description: 'Dividends and distributions',
-  },
-  {
-    id: 'K1-2022-001',
-    name: 'Schedule K-1 (Form 1065)',
-    type: 'K1',
-    taxYear: 2022,
-    fund: 'TerraVest Fund I',
-    dateIssued: '2023-03-10',
-    status: 'available',
-    amount: 38000,
-    description: 'Partner\'s share of income, deductions, credits',
-  },
-  {
-    id: 'STMT-2023-001',
-    name: 'Foreign Tax Credit Statement',
-    type: 'Statement',
-    taxYear: 2023,
-    fund: 'TerraVest Fund I',
-    dateIssued: '2024-03-15',
-    status: 'available',
-    description: 'Foreign taxes paid for credit claim',
-  },
-  {
-    id: 'K1-2024-001',
-    name: 'Schedule K-1 (Form 1065)',
-    type: 'K1',
-    taxYear: 2024,
-    fund: 'TerraVest Fund I',
-    dateIssued: '',
-    status: 'pending',
-    description: 'Partner\'s share of income, deductions, credits',
-  },
-];
-
-const taxSummary = {
-  totalDistributions: 155700,
-  taxableIncome: 142500,
-  foreignTaxesPaid: 8500,
-  stateTaxesPaid: 12500,
-};
-
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -107,21 +22,31 @@ const formatCurrency = (amount: number) => {
 };
 
 export default function TaxDocumentsPage() {
+  const { taxDocuments, isLoading } = useData();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedYear, setSelectedYear] = useState<number | 'all'>('all');
   const [expandedDoc, setExpandedDoc] = useState<string | null>(null);
 
-  const years = Array.from(new Set(taxDocuments.map(d => d.taxYear))).sort((a, b) => b - a);
+  const docs = taxDocuments || [];
+  
+  const years = Array.from(new Set(docs.map(d => new Date(d.createdAt).getFullYear()))).sort((a, b) => b - a);
 
-  const filteredDocs = taxDocuments.filter(doc => {
-    const matchesSearch = doc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         doc.fund.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesYear = selectedYear === 'all' || doc.taxYear === selectedYear;
+  const filteredDocs = docs.filter(doc => {
+    const matchesSearch = doc.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const docYear = new Date(doc.createdAt).getFullYear();
+    const matchesYear = selectedYear === 'all' || docYear === selectedYear;
     return matchesSearch && matchesYear;
   });
 
-  const getStatusClass = (status: string) => {
-    switch (status) {
+  const k1Docs = filteredDocs.filter(d => d.name.toLowerCase().includes('k-1'));
+  const taxStatementDocs = filteredDocs.filter(d => 
+    d.name.toLowerCase().includes('1099') || 
+    d.name.toLowerCase().includes('statement') ||
+    d.name.toLowerCase().includes('tax')
+  );
+
+  const getStatusClass = (status?: string) => {
+    switch (status?.toLowerCase()) {
       case 'available':
         return 'bg-green-500/10 text-green-500';
       case 'pending':
@@ -129,13 +54,20 @@ export default function TaxDocumentsPage() {
       case 'correction':
         return 'bg-red-500/10 text-red-500';
       default:
-        return 'bg-gray-500/10 text-gray-500';
+        return 'bg-green-500/10 text-green-500';
     }
   };
 
+  if (isLoading.taxDocuments) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="w-8 h-8 border-2 border-[#8FB8A3]/30 border-t-[#8FB8A3] rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8 animate-fadeIn">
-      {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-white mb-1">Tax Documents</h1>
@@ -150,30 +82,28 @@ export default function TaxDocumentsPage() {
         </a>
       </div>
 
-      {/* Tax Summary */}
       <div className="bg-[#141414] border border-[#2A2A2A] rounded-xl p-6">
         <h3 className="text-lg font-medium text-white mb-4">2023 Tax Summary</h3>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
           <div>
             <p className="text-sm text-white/40 mb-1">Total Distributions</p>
-            <p className="text-2xl font-bold text-white">{formatCurrency(taxSummary.totalDistributions)}</p>
+            <p className="text-2xl font-bold text-white">{formatCurrency(155700)}</p>
           </div>
           <div>
             <p className="text-sm text-white/40 mb-1">Taxable Income</p>
-            <p className="text-2xl font-bold text-[#8FB8A3]">{formatCurrency(taxSummary.taxableIncome)}</p>
+            <p className="text-2xl font-bold text-[#8FB8A3]">{formatCurrency(142500)}</p>
           </div>
           <div>
             <p className="text-sm text-white/40 mb-1">Foreign Taxes Paid</p>
-            <p className="text-2xl font-bold text-white">{formatCurrency(taxSummary.foreignTaxesPaid)}</p>
+            <p className="text-2xl font-bold text-white">{formatCurrency(8500)}</p>
           </div>
           <div>
             <p className="text-sm text-white/40 mb-1">State Taxes Paid</p>
-            <p className="text-2xl font-bold text-white">{formatCurrency(taxSummary.stateTaxesPaid)}</p>
+            <p className="text-2xl font-bold text-white">{formatCurrency(12500)}</p>
           </div>
         </div>
       </div>
 
-      {/* Important Notice */}
       <div className="flex items-start gap-4 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-xl">
         <AlertCircle className="w-5 h-5 text-yellow-500 flex-shrink-0 mt-0.5" />
         <div>
@@ -187,7 +117,6 @@ export default function TaxDocumentsPage() {
         </div>
       </div>
 
-      {/* Filters */}
       <div className="flex flex-col lg:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
@@ -224,79 +153,126 @@ export default function TaxDocumentsPage() {
             </button>
           ))}
         </div>
+        <div>
+          <label className="sr-only">Tax Year</label>
+          <select
+            aria-label="Tax Year"
+            value={selectedYear === 'all' ? '' : selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value ? Number(e.target.value) : 'all')}
+            className="bg-[#141414] border border-[#2A2A2A] rounded-lg px-4 py-3 text-white focus:border-[#8FB8A3] transition-colors"
+          >
+            <option value="">All Years</option>
+            {years.map(year => <option key={year} value={year}>{year}</option>)}
+          </select>
+        </div>
       </div>
 
-      {/* Documents List */}
-      <div className="space-y-4">
-        {filteredDocs.map((doc) => (
-          <div 
-            key={doc.id}
-            className="bg-[#141414] border border-[#2A2A2A] rounded-xl overflow-hidden"
-          >
-            <div 
-              className="p-6 cursor-pointer hover:bg-[#1A1A1A] transition-colors"
-              onClick={() => setExpandedDoc(expandedDoc === doc.id ? null : doc.id)}
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex items-start gap-4">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${getStatusClass(doc.status)}`}>
-                    <FileText className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-3 mb-1">
-                      <h3 className="font-medium text-white">{doc.name}</h3>
-                      <span className={`px-2 py-0.5 rounded-full text-xs ${getStatusClass(doc.status)}`}>
-                        {doc.status === 'available' ? 'Ready' : doc.status === 'pending' ? 'Pending' : 'Correction'}
-                      </span>
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-lg font-medium text-white mb-3">K-1 Forms</h2>
+          <div className="space-y-4">
+            {k1Docs.length > 0 ? k1Docs.map((doc) => (
+              <div key={doc.id} className="bg-[#141414] border border-[#2A2A2A] rounded-xl overflow-hidden">
+                <div 
+                  className="p-6 cursor-pointer hover:bg-[#1A1A1A] transition-colors"
+                  onClick={() => setExpandedDoc(expandedDoc === doc.id ? null : doc.id)}
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start gap-4">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${getStatusClass()}`}>
+                        <FileText className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-white">{doc.name}</h3>
+                        <div className="flex items-center gap-4 mt-2 text-sm text-white/40">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-4 h-4" />
+                            Tax Year: {new Date(doc.createdAt).getFullYear()}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <CheckCircle2 className="w-4 h-4" />
+                            Issued: {new Date(doc.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-white/60 text-sm">{doc.fund}</p>
-                    <div className="flex items-center gap-4 mt-2 text-sm text-white/40">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-4 h-4" />
-                        Tax Year: {doc.taxYear}
-                      </span>
-                      {doc.dateIssued && (
-                        <span className="flex items-center gap-1">
-                          <CheckCircle2 className="w-4 h-4" />
-                          Issued: {new Date(doc.dateIssued).toLocaleDateString()}
-                        </span>
-                      )}
-                    </div>
+                    {expandedDoc === doc.id ? (
+                      <ChevronUp className="w-5 h-5 text-white/40" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-white/40" />
+                    )}
                   </div>
                 </div>
-                
-                <div className="flex items-center gap-4">
-                  {doc.amount && (
-                    <div className="text-right">
-                      <p className="text-lg font-semibold text-white">{formatCurrency(doc.amount)}</p>
-                      <p className="text-xs text-white/40">Reported Amount</p>
+                {expandedDoc === doc.id && (
+                  <div className="px-6 pb-6 border-t border-[#2A2A2A]">
+                    <div className="pt-4">
+                      <button className="flex items-center gap-2 px-4 py-3 bg-[#8FB8A3] text-[#0A0A0A] rounded-lg font-medium hover:bg-[#7BA391] transition-colors">
+                        <Download className="w-5 h-5" />
+                        Download {doc.name}
+                      </button>
                     </div>
-                  )}
-                  {expandedDoc === doc.id ? (
-                    <ChevronUp className="w-5 h-5 text-white/40" />
-                  ) : (
-                    <ChevronDown className="w-5 h-5 text-white/40" />
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
-            </div>
-            
-            {expandedDoc === doc.id && doc.status === 'available' && (
-              <div className="px-6 pb-6 border-t border-[#2A2A2A]">
-                <div className="pt-4">
-                  <p className="text-white/60 text-sm mb-4">{doc.description}</p>
-                  <button className="flex items-center gap-2 px-4 py-3 bg-[#8FB8A3] text-[#0A0A0A] rounded-lg font-medium hover:bg-[#7BA391] transition-colors">
-                    <Download className="w-5 h-5" />
-                    Download {doc.name}
-                  </button>
-                </div>
-              </div>
+            )) : (
+              <p className="text-white/50">No K-1 forms found</p>
             )}
           </div>
-        ))}
+        </div>
+
+        <div>
+          <h2 className="text-lg font-medium text-white mb-3">Tax Statements</h2>
+          <div className="space-y-4">
+            {taxStatementDocs.length > 0 ? taxStatementDocs.map((doc) => (
+              <div key={`stmt-${doc.id}`} className="bg-[#141414] border border-[#2A2A2A] rounded-xl overflow-hidden">
+                <div 
+                  className="p-6 cursor-pointer hover:bg-[#1A1A1A] transition-colors"
+                  onClick={() => setExpandedDoc(expandedDoc === doc.id ? null : doc.id)}
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start gap-4">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${getStatusClass()}`}>
+                        <FileText className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-white">{doc.name}</h3>
+                        <div className="flex items-center gap-4 mt-2 text-sm text-white/40">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-4 h-4" />
+                            Tax Year: {new Date(doc.createdAt).getFullYear()}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <CheckCircle2 className="w-4 h-4" />
+                            Issued: {new Date(doc.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    {expandedDoc === doc.id ? (
+                      <ChevronUp className="w-5 h-5 text-white/40" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-white/40" />
+                    )}
+                  </div>
+                </div>
+                {expandedDoc === doc.id && (
+                  <div className="px-6 pb-6 border-t border-[#2A2A2A]">
+                    <div className="pt-4">
+                      <button className="flex items-center gap-2 px-4 py-3 bg-[#8FB8A3] text-[#0A0A0A] rounded-lg font-medium hover:bg-[#7BA391] transition-colors">
+                        <Download className="w-5 h-5" />
+                        Download {doc.name}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )) : (
+              <p className="text-white/50">No tax statements found</p>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Empty State */}
       {filteredDocs.length === 0 && (
         <div className="text-center py-16">
           <FileText className="w-16 h-16 text-white/20 mx-auto mb-4" />

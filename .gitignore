@@ -155,3 +155,4 @@ dist-ssr
 # yarn.lock
 # bun.lock
 /test-results/
+playwright/.auth/

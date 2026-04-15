@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
+import { adminApi, type AdminDashboardData, type AnalyticsData } from '@/lib/api';
 import { 
   Users, 
   PieChart, 
@@ -23,46 +24,84 @@ import {
   Bar,
 } from 'recharts';
 
-const stats = [
-  { label: 'Total Users', value: '156', change: '+12', trend: 'up', icon: Users },
-  { label: 'AUM', value: '$247M', change: '+8.4%', trend: 'up', icon: DollarSign },
-  { label: 'Portfolio Companies', value: '9', change: '+2', trend: 'up', icon: Building2 },
-  { label: 'Active Investments', value: '12', change: '0', trend: 'neutral', icon: PieChart },
-];
-
-const recentActivity = [
-  { id: 1, user: 'Jean-Pierre Moussa', action: 'New investment', amount: '$250,000', time: '2 min ago', type: 'investment' },
-  { id: 2, user: 'Sarah Johnson', action: 'Document uploaded', item: 'Q4 Report 2024', time: '15 min ago', type: 'document' },
-  { id: 3, user: 'Michael Chen', action: 'Profile updated', time: '1 hour ago', type: 'profile' },
-  { id: 4, user: 'New user registered', action: 'Amara Okafor', time: '2 hours ago', type: 'user' },
-];
-
-const performanceData = [
-  { month: 'Jan', value: 210, users: 120 },
-  { month: 'Feb', value: 225, users: 125 },
-  { month: 'Mar', value: 218, users: 130 },
-  { month: 'Apr', value: 235, users: 135 },
-  { month: 'May', value: 242, users: 140 },
-  { month: 'Jun', value: 238, users: 145 },
-  { month: 'Jul', value: 247, users: 156 },
-];
-
-const sectorData = [
-  { name: 'Finance', value: 31 },
-  { name: 'Infrastructure', value: 22 },
-  { name: 'Energy', value: 19 },
-  { name: 'Technology', value: 15 },
-  { name: 'Healthcare', value: 13 },
-];
+const formatAUM = (value: number) => {
+  if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`;
+  if (value >= 1_000) return `$${(value / 1_000).toFixed(1)}K`;
+  return `$${value}`;
+};
 
 export default function AdminDashboardPage() {
   const [mounted, setMounted] = useState(false);
+  const [dashboard, setDashboard] = useState<AdminDashboardData | null>(null);
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setMounted(true);
+    let cancelled = false;
+    (async () => {
+      try {
+        setLoading(true);
+        const [dashRes, anaRes] = await Promise.all([
+          adminApi.getDashboard(),
+          adminApi.getAnalytics(),
+        ]);
+        if (!cancelled) {
+          setDashboard(dashRes);
+          setAnalytics(anaRes);
+        }
+      } catch {
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
   }, []);
 
-  if (!mounted) {
+  const stats = [
+    { label: 'Total Users', value: dashboard?.totalUsers?.toString() || '0', change: '+12%', trend: 'up', icon: Users },
+    { label: 'AUM', value: formatAUM(dashboard?.totalAUM || 0), change: '+8%', trend: 'up', icon: DollarSign },
+    { label: 'Portfolio Companies', value: dashboard?.totalCompanies?.toString() || '0', change: '+2', trend: 'up', icon: Building2 },
+    { label: 'Active Investments', value: dashboard?.activeInvestors?.toString() || '0', change: '-1', trend: 'down', icon: TrendingUp },
+  ];
+
+  const performanceData = [
+    { month: 'Jan', value: 8.2, users: 12 },
+    { month: 'Feb', value: 8.8, users: 15 },
+    { month: 'Mar', value: 9.5, users: 18 },
+    { month: 'Apr', value: 10.1, users: 22 },
+    { month: 'May', value: 10.8, users: 28 },
+    { month: 'Jun', value: 11.5, users: 34 },
+  ];
+
+  type ActivityItem = {
+    id: string;
+    type: string;
+    user: string;
+    action: string;
+    amount?: string;
+    item?: string;
+    time: string;
+  };
+
+  const recentActivity: ActivityItem[] = (analytics?.recentInvestors || []).map((inv: any, idx: number) => ({
+    id: inv.id || `${idx}`,
+    type: 'user',
+    user: inv.name || 'Investor',
+    action: 'New investor joined',
+    amount: inv.totalInvested ? formatAUM(Number(inv.totalInvested)) : undefined,
+    item: undefined,
+    time: 'Recently',
+  }));
+
+  type SectorItem = { name: string; value: number };
+
+  const sectorData: SectorItem[] = (analytics?.companiesBySector || []).map((s: any) => ({
+    name: s.sector || 'Other',
+    value: s._count?.id || 0,
+  }));
+
+  if (!mounted || loading) {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="w-8 h-8 border-2 border-[#8FB8A3]/30 border-t-[#8FB8A3] rounded-full animate-spin" />
@@ -192,7 +231,7 @@ export default function AdminDashboardPage() {
           </div>
 
           <div className="space-y-3">
-            {recentActivity.map((activity) => (
+            {recentActivity.length > 0 ? recentActivity.map((activity) => (
               <div key={activity.id} className="flex items-center gap-4 p-3 bg-[#1A1A1A] rounded-lg">
                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
                   activity.type === 'investment' ? 'bg-green-500/10' :
@@ -209,12 +248,14 @@ export default function AdminDashboardPage() {
                 <div className="flex-1">
                   <p className="text-sm font-medium text-white">{activity.user}</p>
                   <p className="text-xs text-white/50">
-                    {activity.action} {activity.amount && `• ${activity.amount}`} {activity.item && `• ${activity.item}`}
+                    {activity.action} {activity.amount ? `• ${activity.amount}` : ''} {activity.item ? `• ${activity.item}` : ''}
                   </p>
                 </div>
                 <span className="text-xs text-white/30">{activity.time}</span>
               </div>
-            ))}
+            )) : (
+              <p className="text-white/40 text-sm">No recent activity</p>
+            )}
           </div>
         </div>
 
@@ -228,7 +269,7 @@ export default function AdminDashboardPage() {
           </div>
 
           <div className="space-y-4">
-            {sectorData.map((sector, index) => (
+            {sectorData.length > 0 ? sectorData.map((sector, index) => (
               <div key={index}>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-white/70">{sector.name}</span>
@@ -237,11 +278,13 @@ export default function AdminDashboardPage() {
                 <div className="h-2 bg-[#2A2A2A] rounded-full overflow-hidden">
                   <div 
                     className="h-full bg-[#8FB8A3] rounded-full transition-all duration-500"
-                    style={{ width: `${sector.value}%` }}
+                    style={{ width: `${Math.min(sector.value, 100)}%` }}
                   />
                 </div>
               </div>
-            ))}
+            )) : (
+              <p className="text-white/40 text-sm">No sector data available</p>
+            )}
           </div>
 
           <NavLink 
