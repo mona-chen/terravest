@@ -29,6 +29,12 @@ export default function LandingLayout() {
   const lenisRef = useRef<Lenis | null>(null);
 
   useEffect(() => {
+    const isTouchDevice = window.matchMedia('(pointer: coarse)').matches;
+    if (isTouchDevice) {
+      ScrollTrigger.refresh();
+      return;
+    }
+
     const lenis = new Lenis({
       duration: 1.2,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
@@ -52,31 +58,44 @@ export default function LandingLayout() {
       ScrollTrigger.refresh();
     }, 100);
 
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-      anchor.addEventListener('click', (e) => {
-        const href = anchor.getAttribute('href');
-        if (href && href !== '#') {
-          e.preventDefault();
-          const target = document.querySelector(href);
-          if (target) {
+    const handleAnchorClick = (e: Event) => {
+      const anchor = e.currentTarget as HTMLAnchorElement;
+      const href = anchor.getAttribute('href');
+      if (href && href !== '#') {
+        e.preventDefault();
+        const target = document.querySelector(href);
+        if (target) {
+          if (lenis) {
             lenis.scrollTo(target as HTMLElement, {
               offset: -80,
               duration: 1.5,
             });
+          } else {
+            const top = (target as HTMLElement).getBoundingClientRect().top + window.scrollY - 80;
+            window.scrollTo({ top, behavior: 'smooth' });
           }
         }
-      });
+      }
+    };
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', handleAnchorClick);
     });
 
     return () => {
       clearTimeout(refreshTimeout);
-      lenis.destroy();
-      gsap.ticker.remove(lenis.raf);
+      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.removeEventListener('click', handleAnchorClick);
+      });
+      if (lenis) {
+        lenis.destroy();
+        gsap.ticker.remove(lenis.raf);
+      }
     };
   }, []);
 
   return (
-    <div className="bg-[#F7F5F0] min-h-screen relative">
+    <div className="bg-[#F7F5F0] min-h-screen relative landing-page-custom-cursor">
       <CustomCursor />
       <ScrollProgress />
       <div className="grain" />

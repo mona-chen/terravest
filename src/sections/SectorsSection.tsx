@@ -23,6 +23,14 @@ export default function SectorsSection() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsDesktop(window.innerWidth >= 1024);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -33,7 +41,6 @@ export default function SectorsSection() {
     if (!section || !trigger || !scroll || !header) return;
 
     const ctx = gsap.context(() => {
-      // Header reveal
       gsap.fromTo(
         header.querySelectorAll('.header-item'),
         { y: 60, opacity: 0 },
@@ -50,24 +57,6 @@ export default function SectorsSection() {
         }
       );
 
-      // Horizontal scroll with smooth scrub
-      const scrollWidth = scroll.scrollWidth - window.innerWidth;
-
-      gsap.to(scroll, {
-        x: -scrollWidth,
-        ease: 'none',
-        scrollTrigger: {
-          trigger: trigger,
-          start: 'top top',
-          end: () => `+=${scrollWidth * 1.2}`,
-          scrub: 0.8,
-          pin: true,
-          anticipatePin: 1,
-          invalidateOnRefresh: true,
-        },
-      });
-
-      // Card entrance animations
       const cards = scroll.querySelectorAll('.sector-card');
       cards.forEach((card, index) => {
         gsap.fromTo(
@@ -80,24 +69,41 @@ export default function SectorsSection() {
             duration: 0.8,
             ease: 'power3.out',
             scrollTrigger: {
-              trigger: trigger,
-              start: 'top 60%',
+              trigger: isDesktop ? trigger : card,
+              start: isDesktop ? 'top 60%' : 'top 85%',
             },
-            delay: index * 0.1,
+            delay: isDesktop ? index * 0.1 : 0,
           }
         );
       });
 
+      if (isDesktop) {
+        const scrollWidth = scroll.scrollWidth - window.innerWidth;
+        gsap.to(scroll, {
+          x: -scrollWidth,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: trigger,
+            start: 'top top',
+            end: () => `+=${scrollWidth * 1.2}`,
+            scrub: 0.8,
+            pin: true,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+          },
+        });
+      }
     }, section);
 
     return () => ctx.revert();
-  }, []);
+  }, [isDesktop]);
 
   return (
     <section ref={sectionRef} className="bg-[#F0EDE6] relative" id="sectors">
-      {/* Horizontal Scroll Container - Header + Cards together */}
-      <div ref={triggerRef} className="h-screen flex flex-col py-8 lg:py-12">
-        {/* Header - Fixed at top of pinned area */}
+      <div
+        ref={triggerRef}
+        className={`flex flex-col py-8 lg:py-12 ${isDesktop ? 'h-screen' : 'min-h-0'}`}
+      >
         <div ref={headerRef} className="container mb-6 flex-shrink-0">
           <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-3">
             <div>
@@ -110,88 +116,87 @@ export default function SectorsSection() {
           </div>
         </div>
 
-        {/* Cards Container - takes remaining space */}
-        <div 
+        <div
           ref={scrollRef}
-          className="flex items-center gap-4 lg:gap-6 px-6 lg:px-20 flex-1 min-h-0"
+          className={`flex items-center gap-4 lg:gap-6 px-6 lg:px-20 flex-1 min-h-0 ${
+            !isDesktop
+              ? 'overflow-x-auto pb-4 snap-x snap-mandatory touch-pan-x scrollbar-hide'
+              : ''
+          }`}
           style={{ perspective: '1000px' }}
         >
           {sectors.map((sector, index) => {
             const Icon = sector.icon;
             const isActive = activeIndex === index;
-            
+
             return (
-              <div 
+              <div
                 key={index}
-                className="sector-card flex-shrink-0 w-[260px] lg:w-[300px] h-full max-h-[360px] bg-[#F7F5F0] p-5 lg:p-6 flex flex-col justify-between group cursor-pointer transition-all duration-700 relative"
-                style={{ 
+                className={`sector-card flex-shrink-0 w-[260px] lg:w-[300px] h-full max-h-[360px] bg-[#F7F5F0] p-5 lg:p-6 flex flex-col justify-between group transition-all duration-700 relative snap-start ${
+                  !isDesktop ? '' : 'cursor-pointer'
+                }`}
+                style={{
                   transformStyle: 'preserve-3d',
                   transform: isActive ? 'translateZ(30px) scale(1.02)' : 'translateZ(0)',
                 }}
-                onMouseEnter={() => setActiveIndex(index)}
-                onMouseLeave={() => setActiveIndex(null)}
+                onMouseEnter={() => isDesktop && setActiveIndex(index)}
+                onMouseLeave={() => isDesktop && setActiveIndex(null)}
               >
-                {/* Card number */}
                 <div className="absolute top-3 right-3 text-caption text-[#7A7A7A]/30">
                   0{index + 1}
                 </div>
-                
+
                 <div>
-                  {/* Icon with animated background */}
-                  <div 
+                  <div
                     className="w-10 h-10 lg:w-12 lg:h-12 flex items-center justify-center mb-4 transition-all duration-500"
-                    style={{ 
+                    style={{
                       backgroundColor: isActive ? sector.color : `${sector.color}20`,
                     }}
                   >
-                    <Icon 
+                    <Icon
                       className="w-4 h-4 lg:w-5 lg:h-5 transition-all duration-500"
                       style={{ color: isActive ? 'white' : sector.color }}
                     />
                   </div>
-                  
-                  {/* Title with hover color change */}
-                  <h3 
+
+                  <h3
                     className="text-base lg:text-lg font-semibold text-[#1A1A1A] mb-2 transition-colors duration-500"
                     style={{ color: isActive ? sector.color : '#1A1A1A' }}
                   >
                     {sector.name}
                   </h3>
-                  
-                  {/* Description */}
+
                   <p className="text-sm text-[#7A7A7A] leading-relaxed">
                     {sector.description}
                   </p>
                 </div>
-                
-                {/* CTA with animated arrow */}
+
                 <div className="flex items-center gap-3 mt-4">
-                  <span 
+                  <span
                     className="text-caption transition-colors duration-500"
                     style={{ color: isActive ? sector.color : '#1A1A1A' }}
                   >
                     Explore
                   </span>
-                  <div 
+                  <div
                     className="w-6 h-6 flex items-center justify-center transition-all duration-500"
-                    style={{ 
+                    style={{
                       backgroundColor: isActive ? sector.color : 'transparent',
                     }}
                   >
-                    <ArrowRight 
+                    <ArrowRight
                       className="w-3.5 h-3.5 transition-all duration-500"
-                      style={{ 
+                      style={{
                         color: isActive ? 'white' : '#1A1A1A',
                         transform: isActive ? 'translateX(4px)' : 'translateX(0)',
                       }}
                     />
                   </div>
                 </div>
-                
-                {/* Bottom accent line */}
-                <div 
+
+                <div
                   className="absolute bottom-0 left-0 h-1 transition-all duration-500"
-                  style={{ 
+                  style={{
                     backgroundColor: sector.color,
                     width: isActive ? '100%' : '0%',
                   }}
@@ -199,12 +204,10 @@ export default function SectorsSection() {
               </div>
             );
           })}
-          
-          {/* End CTA Card */}
-          <div className="sector-card flex-shrink-0 w-[260px] lg:w-[300px] h-full max-h-[360px] bg-[#1A1A1A] p-5 lg:p-6 flex flex-col justify-center items-center text-center relative overflow-hidden group">
-            {/* Animated background */}
+
+          <div className="sector-card flex-shrink-0 w-[260px] lg:w-[300px] h-full max-h-[360px] bg-[#1A1A1A] p-5 lg:p-6 flex flex-col justify-center items-center text-center relative overflow-hidden group snap-start">
             <div className="absolute inset-0 bg-gradient-to-br from-[#8FB8A3]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-            
+
             <div className="relative z-10">
               <h3 className="text-base lg:text-lg font-semibold text-white mb-2">
                 View All Criteria
@@ -219,8 +222,7 @@ export default function SectorsSection() {
             </div>
           </div>
         </div>
-        
-        {/* Progress indicator - at bottom */}
+
         <div className="container mt-4 flex-shrink-0">
           <div className="flex items-center gap-4">
             <div className="flex-1 h-px bg-[#1A1A1A]/10 relative overflow-hidden max-w-xs">
