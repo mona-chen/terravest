@@ -4,6 +4,19 @@ set -e
 PORT=${PORT:-80}
 export PORT
 
+if [ -z "$DATABASE_URL" ]; then
+  echo "ERROR: DATABASE_URL is not set. Add it in Railway Variables."
+  exit 1
+fi
+if [ -z "$JWT_SECRET" ]; then
+  echo "ERROR: JWT_SECRET is not set. Add it in Railway Variables."
+  exit 1
+fi
+if [ -z "$JWT_REFRESH_SECRET" ]; then
+  echo "ERROR: JWT_REFRESH_SECRET is not set. Add it in Railway Variables."
+  exit 1
+fi
+
 echo "TerraVest startup - Port: $PORT"
 
 envsubst '$PORT' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf
