@@ -20,6 +20,7 @@ RUN apt-get update && apt-get install -y curl ca-certificates && \
     apt-get install -y nodejs && \
     rm -rf /var/lib/apt/lists/*
 RUN rm -f /etc/nginx/conf.d/default.conf
+RUN rm -f /etc/nginx/sites-enabled/default
 
 COPY --from=frontend-build /app/dist /usr/share/nginx/html
 

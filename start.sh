@@ -6,7 +6,14 @@ export PORT
 
 echo "TerraVest starting on port $PORT"
 
+echo "Static files in /usr/share/nginx/html:"
+ls -la /usr/share/nginx/html/ || echo "No static files!"
+
 envsubst '$PORT' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf
+
+echo "Nginx config:"
+cat /etc/nginx/conf.d/default.conf
+
 nginx -t
 
 (
