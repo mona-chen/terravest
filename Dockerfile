@@ -14,7 +14,7 @@ RUN npm run build
 RUN npx prisma generate
 
 FROM nginx:stable
-ARG CACHEBUST=2
+ARG CACHEBUST=3
 RUN apt-get update && apt-get install -y curl ca-certificates && \
     curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get install -y nodejs && \
@@ -29,6 +29,8 @@ COPY --from=backend-build /app/server/dist ./dist
 COPY --from=backend-build /app/server/node_modules ./node_modules
 COPY --from=backend-build /app/server/prisma ./prisma
 COPY --from=backend-build /app/server/package.json ./package.json
+
+RUN npx prisma generate
 
 COPY nginx.conf /etc/nginx/templates/default.conf.template
 COPY start.sh /start.sh
