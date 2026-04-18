@@ -49,6 +49,7 @@
   "prisma": {
     "seed": "ts-node prisma/seed.ts"
   },
+  "postinstall": "prisma generate",
   "engines": {
     "node": ">=14.0.0"
   }

@@ -62,8 +62,8 @@ export async function getDashboard(req: Request, res: Response) {
   }
 
   const holdings = investor.portfolioHoldings.map(mapPortfolioHolding);
-  const totalValue = holdings.reduce((sum, h) => sum + h.value, 0);
-  const totalInvested = holdings.reduce((sum, h) => sum + h.shares * h.purchasePrice, 0);
+  const totalValue = holdings.reduce((sum: number, h: { value: number }) => sum + h.value, 0);
+  const totalInvested = holdings.reduce((sum: number, h: { shares: number; purchasePrice: number }) => sum + h.shares * h.purchasePrice, 0);
   const totalReturn = totalValue - totalInvested;
 
   const unreadNotifications = await prisma.notification.count({

@@ -1,0 +1,15 @@
+node_modules
+server/node_modules
+dist
+server/dist
+.git
+.env
+.env.local
+*.md
+test-results
+playwright-report
+playwright/.auth
+.nyc_output
+coverage
+.vscode
+.idea
