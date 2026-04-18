@@ -15,6 +15,7 @@ RUN npx prisma generate
 
 FROM nginx:alpine
 RUN apk add --no-cache nodejs npm
+RUN rm -f /etc/nginx/conf.d/default.conf
 
 COPY --from=frontend-build /app/dist /usr/share/nginx/html
 
