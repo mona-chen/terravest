@@ -13,10 +13,12 @@ COPY server/ ./
 RUN npm run build
 RUN npx prisma generate
 
-FROM nginx:alpine
-RUN apk add --no-cache nodejs npm curl libc6-compat libssl3
-RUN ln -sf /lib/libssl.so.3 /lib/libssl.so.1.1 2>/dev/null || true
-RUN ln -sf /lib/libcrypto.so.3 /lib/libcrypto.so.1.1 2>/dev/null || true
+FROM nginx:stable
+ARG CACHEBUST=2
+RUN apt-get update && apt-get install -y curl ca-certificates && \
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs && \
+    rm -rf /var/lib/apt/lists/*
 RUN rm -f /etc/nginx/conf.d/default.conf
 
 COPY --from=frontend-build /app/dist /usr/share/nginx/html
