@@ -14,7 +14,9 @@ RUN npm run build
 RUN npx prisma generate
 
 FROM nginx:alpine
-RUN apk add --no-cache nodejs npm curl
+RUN apk add --no-cache nodejs npm curl libc6-compat libssl3
+RUN ln -sf /lib/libssl.so.3 /lib/libssl.so.1.1 2>/dev/null || true
+RUN ln -sf /lib/libcrypto.so.3 /lib/libcrypto.so.1.1 2>/dev/null || true
 RUN rm -f /etc/nginx/conf.d/default.conf
 
 COPY --from=frontend-build /app/dist /usr/share/nginx/html
