@@ -2,11 +2,14 @@ import { createContext, useContext, useState, useCallback, useEffect, type React
 import { authApi } from '@/lib/api';
 import type { User, ProfileUpdate } from '@/lib/api/types';
 
+import type { RegisterData } from '@/lib/api/types';
+
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  register: (data: RegisterData) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   updateProfile: (updates: ProfileUpdate) => Promise<{ success: boolean; error?: string }>;
   changePassword: () => Promise<{ success: boolean; error?: string }>;
@@ -52,6 +55,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { 
         success: false, 
         error: error.response?.data?.error?.message || 'Login failed. Please try again.' 
+      };
+    }
+  }, []);
+
+  const register = useCallback(async (data: RegisterData): Promise<{ success: boolean; error?: string }> => {
+    setIsLoading(true);
+
+    try {
+      const response = await authApi.register(data);
+
+      localStorage.setItem('terravest_access_token', response.accessToken);
+      localStorage.setItem('terravest_refresh_token', response.refreshToken);
+
+      setUser(response.user);
+      setIsLoading(false);
+      return { success: true };
+    } catch (error: any) {
+      setIsLoading(false);
+      return {
+        success: false,
+        error: error.response?.data?.error?.message || 'Registration failed. Please try again.',
       };
     }
   }, []);
@@ -103,6 +127,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthenticated: !!user,
         isLoading,
         login,
+        register,
         logout,
         updateProfile,
         changePassword,

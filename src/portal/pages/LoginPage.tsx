@@ -179,6 +179,13 @@ export default function LoginPage() {
             </button>
           </form>
 
+          <div className="mt-8 text-center">
+            <p className="text-sm text-white/40">
+              Don't have an account?{' '}
+              <a href="/register" className="text-[#8FB8A3] hover:underline">Create account</a>
+            </p>
+          </div>
+
           {/* Demo credentials */}
           <div className="mt-8 p-4 bg-[#141414] rounded-lg border border-[#2A2A2A]">
             <p className="text-xs text-white/40 mb-2">Demo Credentials</p>
@@ -187,7 +194,7 @@ export default function LoginPage() {
           </div>
 
           {/* Footer */}
-          <div className="mt-12 text-center">
+          <div className="mt-8 text-center">
             <p className="text-sm text-white/40">
               Need help?{' '}
               <button className="text-[#8FB8A3] hover:underline">Contact support</button>

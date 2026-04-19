@@ -4,6 +4,7 @@ import { DataProvider } from './contexts/DataContext';
 import Layout from './components/Layout';
 import AdminLayout from './components/AdminLayout';
 import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import PortfolioPage from './pages/PortfolioPage';
 import DocumentsPage from './pages/DocumentsPage';
@@ -36,6 +37,10 @@ function App() {
       <Route 
         path="/login" 
         element={isAuthenticated ? <Navigate to="/dashboard" /> : <LoginPage />} 
+      />
+      <Route 
+        path="/register" 
+        element={isAuthenticated ? <Navigate to="/dashboard" /> : <RegisterPage />} 
       />
       <Route 
         path="/" 
