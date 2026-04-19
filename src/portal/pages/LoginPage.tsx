@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { Link } from 'react-router-dom';
 import { Eye, EyeOff, Lock, Mail, ArrowRight, Building2 } from 'lucide-react';
 
 export default function LoginPage() {
@@ -182,7 +183,7 @@ export default function LoginPage() {
           <div className="mt-8 text-center">
             <p className="text-sm text-white/40">
               Don't have an account?{' '}
-              <a href="/register" className="text-[#8FB8A3] hover:underline">Create account</a>
+              <Link to="/register" className="text-[#8FB8A3] hover:underline">Create account</Link>
             </p>
           </div>
 
