@@ -1,16 +1,27 @@
 import 'dotenv/config';
-/// <reference path="./types/express.d.ts" />
 import app from './app';
 import config from './config/env';
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : config.port;
 const HOST = process.env.HOST ?? '0.0.0.0';
 
-if (process.env.NODE_ENV !== 'test' && (require.main === module)) {
-  app.listen(PORT, HOST, () => {
-    // eslint-disable-next-line no-console
-    console.log(`Server is running on http://${HOST}:${PORT}`);
-  });
-}
+const server = app.listen(PORT, HOST, () => {
+  console.log(`Server is running on http://${HOST}:${PORT}`);
+});
 
-export default app;
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, shutting down gracefully');
+  server.close(() => {
+    process.exit(0);
+  });
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
+});
