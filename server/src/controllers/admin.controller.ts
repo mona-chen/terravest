@@ -202,6 +202,13 @@ export async function getPortfolios(req: Request, res: Response) {
         },
       }));
       const totalValue = holdings.reduce((sum: number, h: any) => sum + h.value, 0);
+      const status = holdings.length === 0
+        ? 'PENDING'
+        : holdings.some((h: any) => h.status === 'ACTIVE')
+          ? 'ACTIVE'
+          : holdings.some((h: any) => h.status === 'PENDING')
+            ? 'PENDING'
+            : 'EXITED';
       return {
         id: inv.id,
         userId: inv.userId,
@@ -210,6 +217,7 @@ export async function getPortfolios(req: Request, res: Response) {
         totalInvested: Number(inv.totalInvested),
         totalValue,
         holdingsCount: holdings.length,
+        status,
         holdings,
       };
     }),
@@ -243,17 +251,12 @@ export async function getAnalytics(req: Request, res: Response) {
   const [
     usersByRole,
     companiesBySector,
-    totalAUM,
+    holdings,
     recentInvestors,
   ] = await Promise.all([
     prisma.user.groupBy({ by: ['role'], _count: { id: true } }),
     prisma.company.groupBy({ by: ['sector'], _count: { id: true } }),
-    prisma.portfolioHolding.aggregate({
-      _sum: {
-        currentPrice: true,
-        shares: true,
-      },
-    }),
+    prisma.portfolioHolding.findMany(),
     prisma.investor.findMany({
       take: 5,
       orderBy: { createdAt: 'desc' },
@@ -261,12 +264,17 @@ export async function getAnalytics(req: Request, res: Response) {
     }),
   ]);
 
+  const totalAUM = holdings.reduce(
+    (sum: number, h: any) => sum + Number(h.currentPrice) * Number(h.shares),
+    0
+  );
+
   return res.status(200).json({
     success: true,
     data: {
       usersByRole,
       companiesBySector,
-      totalAUM: Number(totalAUM._sum.currentPrice || 0) * Number(totalAUM._sum.shares || 0),
+      totalAUM,
       recentInvestors: recentInvestors.map((inv: any) => ({
         ...inv,
         totalInvested: Number(inv.totalInvested),

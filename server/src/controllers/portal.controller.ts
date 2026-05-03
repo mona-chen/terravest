@@ -226,7 +226,27 @@ export async function getNotifications(req: Request, res: Response) {
 }
 
 export async function markNotificationRead(req: Request, res: Response) {
+  const userId = req.user?.userId;
   const { id } = req.params;
+
+  const notification = await prisma.notification.findUnique({
+    where: { id },
+  });
+
+  if (!notification) {
+    return res.status(404).json({
+      success: false,
+      error: { code: 'NOT_FOUND', message: 'Notification not found' },
+    });
+  }
+
+  if (notification.userId !== userId) {
+    return res.status(403).json({
+      success: false,
+      error: { code: 'FORBIDDEN', message: 'Access denied' },
+    });
+  }
+
   await prisma.notification.update({
     where: { id },
     data: { read: true },

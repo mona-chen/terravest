@@ -1,5 +1,5 @@
 import request from 'supertest';
-import app from '../../../../server/src/server';
+import app from '../../src/app';
 
 describe('Health routes integration', () => {
   it('GET /api/health should return 200 and health payload', async () => {

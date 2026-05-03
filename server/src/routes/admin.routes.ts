@@ -16,24 +16,25 @@ import {
   getAnalytics,
 } from '../controllers/admin.controller';
 import { requireAuth, requireAdmin } from '../middleware/auth';
+import { asyncHandler } from '../middleware/asyncHandler';
 
 const router = Router();
 
 router.use(requireAuth, requireAdmin);
 
-router.get('/dashboard', getDashboard);
-router.get('/users', getUsers);
-router.get('/users/:id', getUser);
-router.patch('/users/:id', updateUser);
-router.get('/companies', getCompanies);
-router.post('/companies', createCompany);
-router.patch('/companies/:id', updateCompany);
-router.delete('/companies/:id', deleteCompany);
-router.get('/documents', getDocuments);
-router.post('/documents', createDocument);
-router.delete('/documents/:id', deleteDocument);
-router.get('/portfolios', getPortfolios);
-router.get('/opportunities', getOpportunities);
-router.get('/analytics', getAnalytics);
+router.get('/dashboard', asyncHandler(getDashboard));
+router.get('/users', asyncHandler(getUsers));
+router.get('/users/:id', asyncHandler(getUser));
+router.patch('/users/:id', asyncHandler(updateUser));
+router.get('/companies', asyncHandler(getCompanies));
+router.post('/companies', asyncHandler(createCompany));
+router.patch('/companies/:id', asyncHandler(updateCompany));
+router.delete('/companies/:id', asyncHandler(deleteCompany));
+router.get('/documents', asyncHandler(getDocuments));
+router.post('/documents', asyncHandler(createDocument));
+router.delete('/documents/:id', asyncHandler(deleteDocument));
+router.get('/portfolios', asyncHandler(getPortfolios));
+router.get('/opportunities', asyncHandler(getOpportunities));
+router.get('/analytics', asyncHandler(getAnalytics));
 
 export default router;

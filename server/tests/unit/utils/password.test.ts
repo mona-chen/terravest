@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import { hashPassword, verifyPassword } from '../../src/utils/password';
+import { hashPassword, verifyPassword } from '../../../src/utils/password';
 
 describe('Password Utils', () => {
   describe('hashPassword', () => {

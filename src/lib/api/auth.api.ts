@@ -15,4 +15,7 @@ export const authApi = {
   },
 
   getMe: () => apiClient.get<{ user: User }>(ENDPOINTS.AUTH.ME),
+
+  changePassword: (data: { currentPassword: string; newPassword: string }) =>
+    apiClient.post<{ message: string }>(ENDPOINTS.AUTH.CHANGE_PASSWORD, data),
 };

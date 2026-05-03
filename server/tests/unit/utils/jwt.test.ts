@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { signAccessToken, signRefreshToken, verifyAccessToken, verifyRefreshToken, decodeToken } from '../../src/utils/jwt';
+import { signAccessToken, signRefreshToken, verifyAccessToken, verifyRefreshToken, decodeToken } from '../../../src/utils/jwt';
 
 describe('JWT Utils', () => {
   const mockPayload = {

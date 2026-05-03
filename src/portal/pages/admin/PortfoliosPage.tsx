@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { adminApi } from '@/lib/api';
+import type { AdminPortfolio } from '@/lib/api/admin.api';
 import { 
   Search, 
   Filter, 
@@ -20,42 +21,43 @@ const formatCurrency = (value: number) => {
 };
 
 export default function PortfoliosPage() {
-  const [companies, setCompanies] = useState<any[]>([]);
+  const [portfolios, setPortfolios] = useState<AdminPortfolio[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedSector, setSelectedSector] = useState('All');
   const [selectedStatus, setSelectedStatus] = useState('All');
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showAddModal, setShowAddModal] = useState(false);
 
   useEffect(() => {
-    const fetchCompanies = async () => {
+    const fetchPortfolios = async () => {
       try {
-        const data = await adminApi.getCompanies();
-        setCompanies(data);
+        const data = await adminApi.getPortfolios();
+        setPortfolios(data);
       } catch (err) {
+        // silently fail
       } finally {
         setIsLoading(false);
       }
     };
-    fetchCompanies();
+    fetchPortfolios();
   }, []);
 
-  const sectors = ['All', ...Array.from(new Set(companies.map((c: any) => c.sector).filter(Boolean)))];
   const statuses = ['All', 'Active', 'Pending', 'Exited'];
 
-  const filteredCompanies = companies.filter((c: any) => {
-    const matchesSearch = (c.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         (c.sector || '').toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesSector = selectedSector === 'All' || c.sector === selectedSector;
-    const matchesStatus = selectedStatus === 'All' || c.status === selectedStatus;
-    return matchesSearch && matchesSector && matchesStatus;
+  const filteredPortfolios = portfolios.filter((p: AdminPortfolio) => {
+    const matchesSearch = (p.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         (p.email || '').toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = selectedStatus === 'All' || p.status === selectedStatus;
+    return matchesSearch && matchesStatus;
   });
 
-  const totalValue = filteredCompanies.reduce((sum: number, c: any) => sum + (c.valuation || 0), 0);
-  const avgGrowth = filteredCompanies.length > 0 
-    ? filteredCompanies.reduce((sum: number, c: any) => sum + (c.metrics?.revenueGrowth || 0), 0) / filteredCompanies.length 
+  const totalValue = filteredPortfolios.reduce((sum: number, p: AdminPortfolio) => sum + (p.totalValue || 0), 0);
+  const avgGrowth = filteredPortfolios.length > 0 
+    ? filteredPortfolios.reduce((sum: number, p: AdminPortfolio) => {
+        const growth = p.holdings?.reduce((hSum: number, h: any) => hSum + (h.company?.metricsRevenueGrowth || 0), 0) ?? 0;
+        return sum + growth;
+      }, 0) / filteredPortfolios.length 
     : 0;
 
   if (isLoading) {
@@ -71,7 +73,7 @@ export default function PortfoliosPage() {
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-white mb-1">Portfolios</h1>
-          <p className="text-white/50">Manage portfolio companies and investments</p>
+          <p className="text-white/50">Manage investor portfolios and holdings</p>
         </div>
         <div className="flex items-center gap-3">
           <button className="flex items-center gap-2 px-4 py-2 bg-[#141414] border border-[#2A2A2A] rounded-lg text-white/70 hover:text-white hover:border-[#8FB8A3] transition-colors">
@@ -83,7 +85,7 @@ export default function PortfoliosPage() {
             className="flex items-center gap-2 px-4 py-2 bg-[#8FB8A3] text-[#0A0A0A] rounded-lg font-medium hover:bg-[#7BA391] transition-colors"
           >
             <Plus className="w-4 h-4" />
-            <span className="text-sm">Add Company</span>
+            <span className="text-sm">Add Portfolio</span>
           </button>
         </div>
       </div>
@@ -94,8 +96,8 @@ export default function PortfoliosPage() {
           <p className="text-xl font-semibold text-white">{formatCurrency(totalValue)}</p>
         </div>
         <div className="bg-[#141414] border border-[#2A2A2A] rounded-xl p-5">
-          <p className="text-white/50 text-sm mb-1">Companies</p>
-          <p className="text-xl font-semibold text-white">{filteredCompanies.length}</p>
+          <p className="text-white/50 text-sm mb-1">Portfolios</p>
+          <p className="text-xl font-semibold text-white">{filteredPortfolios.length}</p>
         </div>
         <div className="bg-[#141414] border border-[#2A2A2A] rounded-xl p-5">
           <p className="text-white/50 text-sm mb-1">Avg. Growth</p>
@@ -103,7 +105,7 @@ export default function PortfoliosPage() {
         </div>
         <div className="bg-[#141414] border border-[#2A2A2A] rounded-xl p-5">
           <p className="text-white/50 text-sm mb-1">Active</p>
-          <p className="text-xl font-semibold text-[#8FB8A3]">{filteredCompanies.filter((c: any) => c.status === 'ACTIVE').length}</p>
+          <p className="text-xl font-semibold text-[#8FB8A3]">{filteredPortfolios.filter((p: AdminPortfolio) => p.status === 'ACTIVE').length}</p>
         </div>
       </div>
 
@@ -115,7 +117,7 @@ export default function PortfoliosPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search companies..."
+              placeholder="Search portfolios..."
               className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg pl-12 pr-4 py-2.5 text-white placeholder-white/30 focus:border-[#8FB8A3] transition-colors"
             />
           </div>
@@ -153,16 +155,6 @@ export default function PortfoliosPage() {
         {showFilters && (
           <div className="mt-4 pt-4 border-t border-[#2A2A2A] grid sm:grid-cols-2 gap-4 animate-slideUp">
             <div>
-              <label className="block text-sm text-white/50 mb-2">Sector</label>
-              <select
-                value={selectedSector}
-                onChange={(e) => setSelectedSector(e.target.value)}
-                className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg px-4 py-2.5 text-white focus:border-[#8FB8A3] transition-colors"
-              >
-                {sectors.map((s: string) => <option key={s} value={s}>{s}</option>)}
-              </select>
-            </div>
-            <div>
               <label className="block text-sm text-white/50 mb-2">Status</label>
               <select
                 value={selectedStatus}
@@ -178,23 +170,23 @@ export default function PortfoliosPage() {
 
       {viewMode === 'grid' ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredCompanies.map((company: any) => (
-            <div key={company.id} className="bg-[#141414] border border-[#2A2A2A] rounded-xl overflow-hidden card-hover group">
+          {filteredPortfolios.map((portfolio: AdminPortfolio) => (
+            <div key={portfolio.id} className="bg-[#141414] border border-[#2A2A2A] rounded-xl overflow-hidden card-hover group">
               <div className="relative h-40 overflow-hidden">
                 <img 
-                  src={`/sectors/${(company.sector || 'general').toLowerCase()}.jpg`} 
-                  alt={company.name}
+                  src={`/sectors/${(portfolio.holdings?.[0]?.company?.sector || 'general').toLowerCase()}.jpg`} 
+                  alt={portfolio.name}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                   onError={(e) => { (e.target as HTMLImageElement).src = '/sectors/energy.jpg'; }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#141414] to-transparent" />
                 <div className="absolute top-3 right-3">
                   <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                    company.status === 'ACTIVE' ? 'bg-green-500/20 text-green-400' :
-                    company.status === 'PENDING' ? 'bg-yellow-500/20 text-yellow-400' :
+                    portfolio.status === 'ACTIVE' ? 'bg-green-500/20 text-green-400' :
+                    portfolio.status === 'PENDING' ? 'bg-yellow-500/20 text-yellow-400' :
                     'bg-gray-500/20 text-gray-400'
                   }`}>
-                    {company.status}
+                    {portfolio.status}
                   </span>
                 </div>
               </div>
@@ -202,26 +194,26 @@ export default function PortfoliosPage() {
               <div className="p-5">
                 <div className="flex items-center gap-2 text-sm text-white/50 mb-2">
                   <Building2 className="w-4 h-4" />
-                  <span>{company.sector}</span>
+                  <span>{portfolio.holdingsCount} holdings</span>
                 </div>
                 
-                <h3 className="text-lg font-medium text-white mb-4">{company.name}</h3>
+                <h3 className="text-lg font-medium text-white mb-4">{portfolio.name}</h3>
                 
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
-                    <p className="text-xs text-white/40 mb-1">Valuation</p>
-                    <p className="text-sm font-medium text-white">{formatCurrency(company.valuation || 0)}</p>
+                    <p className="text-xs text-white/40 mb-1">Total Value</p>
+                    <p className="text-sm font-medium text-white">{formatCurrency(portfolio.totalValue || 0)}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-white/40 mb-1">Revenue</p>
-                    <p className="text-sm font-medium text-white">{formatCurrency(company.revenue || 0)}</p>
+                    <p className="text-xs text-white/40 mb-1">Invested</p>
+                    <p className="text-sm font-medium text-white">{formatCurrency(portfolio.totalInvested || 0)}</p>
                   </div>
                 </div>
                 
                 <div className="flex items-center justify-between pt-4 border-t border-[#2A2A2A]">
-                  <div className={`flex items-center gap-1 text-sm ${(company.metrics?.revenueGrowth || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    {(company.metrics?.revenueGrowth || 0) >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-                    <span>+{(company.metrics?.revenueGrowth || 0).toFixed(1)}%</span>
+                  <div className={`flex items-center gap-1 text-sm ${avgGrowth >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                    {avgGrowth >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+                    <span>+{avgGrowth.toFixed(1)}%</span>
                   </div>
                 </div>
                 
@@ -243,39 +235,42 @@ export default function PortfoliosPage() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-[#2A2A2A]">
-                <th className="py-4 px-6 text-left text-sm font-medium text-white/50">Company</th>
-                <th className="py-4 px-6 text-left text-sm font-medium text-white/50">Sector</th>
-                <th className="py-4 px-6 text-right text-sm font-medium text-white/50">Valuation</th>
-                <th className="py-4 px-6 text-right text-sm font-medium text-white/50">Revenue</th>
+                <th className="py-4 px-6 text-left text-sm font-medium text-white/50">Portfolio</th>
+                <th className="py-4 px-6 text-left text-sm font-medium text-white/50">Holdings</th>
+                <th className="py-4 px-6 text-right text-sm font-medium text-white/50">Total Value</th>
+                <th className="py-4 px-6 text-right text-sm font-medium text-white/50">Invested</th>
                 <th className="py-4 px-6 text-right text-sm font-medium text-white/50">Growth</th>
                 <th className="py-4 px-6 text-center text-sm font-medium text-white/50">Status</th>
                 <th className="py-4 px-6"></th>
               </tr>
             </thead>
             <tbody>
-              {filteredCompanies.map((company: any) => (
-                <tr key={company.id} className="border-b border-[#2A2A2A] hover:bg-[#1A1A1A] transition-colors">
+              {filteredPortfolios.map((portfolio: AdminPortfolio) => (
+                <tr key={portfolio.id} className="border-b border-[#2A2A2A] hover:bg-[#1A1A1A] transition-colors">
                   <td className="py-4 px-6">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-[#8FB8A3]/10 rounded-lg flex items-center justify-center">
                         <Building2 className="w-5 h-5 text-[#8FB8A3]" />
                       </div>
-                      <span className="font-medium text-white">{company.name}</span>
+                      <div>
+                        <span className="font-medium text-white">{portfolio.name}</span>
+                        <p className="text-xs text-white/40">{portfolio.email}</p>
+                      </div>
                     </div>
                   </td>
-                  <td className="py-4 px-6 text-white/70">{company.sector}</td>
-                  <td className="py-4 px-6 text-right font-medium text-white">{formatCurrency(company.valuation || 0)}</td>
-                  <td className="py-4 px-6 text-right text-white">{formatCurrency(company.revenue || 0)}</td>
-                  <td className={`py-4 px-6 text-right ${(company.metrics?.revenueGrowth || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    +{(company.metrics?.revenueGrowth || 0).toFixed(1)}%
+                  <td className="py-4 px-6 text-white/70">{portfolio.holdingsCount}</td>
+                  <td className="py-4 px-6 text-right font-medium text-white">{formatCurrency(portfolio.totalValue || 0)}</td>
+                  <td className="py-4 px-6 text-right text-white">{formatCurrency(portfolio.totalInvested || 0)}</td>
+                  <td className={`py-4 px-6 text-right ${avgGrowth >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                    +{avgGrowth.toFixed(1)}%
                   </td>
                   <td className="py-4 px-6 text-center">
                     <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-                      company.status === 'ACTIVE' ? 'bg-green-500/10 text-green-400' :
-                      company.status === 'PENDING' ? 'bg-yellow-500/10 text-yellow-400' :
+                      portfolio.status === 'ACTIVE' ? 'bg-green-500/10 text-green-400' :
+                      portfolio.status === 'PENDING' ? 'bg-yellow-500/10 text-yellow-400' :
                       'bg-gray-500/10 text-gray-400'
                     }`}>
-                      {company.status}
+                      {portfolio.status}
                     </span>
                   </td>
                   <td className="py-4 px-6">
@@ -298,12 +293,12 @@ export default function PortfoliosPage() {
         </div>
       )}
 
-      {filteredCompanies.length === 0 && (
+      {filteredPortfolios.length === 0 && (
         <div className="text-center py-16">
           <div className="w-16 h-16 bg-[#1A1A1A] rounded-full flex items-center justify-center mx-auto mb-4">
             <Search className="w-8 h-8 text-white/30" />
           </div>
-          <h3 className="text-lg font-medium text-white mb-2">No companies found</h3>
+          <h3 className="text-lg font-medium text-white mb-2">No portfolios found</h3>
           <p className="text-white/50">Try adjusting your search or filters</p>
         </div>
       )}
@@ -312,15 +307,12 @@ export default function PortfoliosPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setShowAddModal(false)} />
           <div className="relative bg-[#141414] border border-[#2A2A2A] rounded-xl w-full max-w-md p-6">
-            <h3 className="text-xl font-semibold text-white mb-4">Add New Company</h3>
+            <h3 className="text-xl font-semibold text-white mb-4">Add New Portfolio</h3>
             <div className="space-y-4">
-              <input type="text" className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg px-4 py-2.5 text-white" placeholder="Company Name" />
-              <select className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg px-4 py-2.5 text-white">
-                {sectors.filter((s: string) => s !== 'All').map((s: string) => <option key={s} value={s}>{s}</option>)}
-              </select>
+              <input type="text" className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg px-4 py-2.5 text-white" placeholder="Portfolio Name" />
               <div className="flex gap-3 pt-4">
                 <button onClick={() => setShowAddModal(false)} className="flex-1 px-4 py-2.5 border border-[#2A2A2A] rounded-lg text-white/70 hover:text-white">Cancel</button>
-                <button onClick={() => setShowAddModal(false)} className="flex-1 px-4 py-2.5 bg-[#8FB8A3] text-[#0A0A0A] rounded-lg font-medium">Add Company</button>
+                <button onClick={() => setShowAddModal(false)} className="flex-1 px-4 py-2.5 bg-[#8FB8A3] text-[#0A0A0A] rounded-lg font-medium">Add Portfolio</button>
               </div>
             </div>
           </div>

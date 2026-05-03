@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
-import { authApi } from '@/lib/api';
+import { authApi, portalApi } from '@/lib/api';
 import type { User, ProfileUpdate } from '@/lib/api/types';
 
 import type { RegisterData } from '@/lib/api/types';
@@ -12,7 +12,7 @@ interface AuthContextType {
   register: (data: RegisterData) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   updateProfile: (updates: ProfileUpdate) => Promise<{ success: boolean; error?: string }>;
-  changePassword: () => Promise<{ success: boolean; error?: string }>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -91,13 +91,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const updateProfile = useCallback(async (_updates: ProfileUpdate): Promise<{ success: boolean; error?: string }> => {
+  const updateProfile = useCallback(async (updates: ProfileUpdate): Promise<{ success: boolean; error?: string }> => {
     if (!user) return { success: false, error: 'Not authenticated' };
     
     setIsLoading(true);
     
     try {
-      const response = await authApi.getMe();
+      const response = await portalApi.updateProfile(updates);
       setUser(response.user);
       setIsLoading(false);
       return { success: true };
@@ -110,14 +110,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [user]);
 
-  const changePassword = useCallback(async (): Promise<{ success: boolean; error?: string }> => {
+  const changePassword = useCallback(async (currentPassword: string, newPassword: string): Promise<{ success: boolean; error?: string }> => {
     if (!user) return { success: false, error: 'Not authenticated' };
     
     setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
     
-    setIsLoading(false);
-    return { success: true };
+    try {
+      await authApi.changePassword({ currentPassword, newPassword });
+      setIsLoading(false);
+      return { success: true };
+    } catch (error: any) {
+      setIsLoading(false);
+      return { 
+        success: false, 
+        error: error.response?.data?.error?.message || 'Password change failed' 
+      };
+    }
   }, [user]);
 
   return (

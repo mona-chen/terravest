@@ -8,62 +8,53 @@ gsap.registerPlugin(ScrollTrigger);
 const teamMembers = [
   {
     id: 1,
-    name: "Dr. Paul Biya Jr.",
+    name: "Ndong Mebenga Octave Nérée",
     role: "Chief Executive Officer",
-    bio: "Former investment banker with 20+ years experience in African markets. Led multiple successful exits across fintech and infrastructure sectors.",
-    avatar: "https://ui-avatars.com/api/?name=Paul+Biya&background=8FB8A3&color=fff&size=256",
+    bio: "Dynamic executive with a multidisciplinary background in Information & Communication Sciences, economics, and institutional engagement. Leads TerraVest's mission to deliver cutting-edge financial advisory solutions across Africa and global markets.",
+    avatar: "/team/ndong-mebenga.jpg",
     linkedin: "#",
     twitter: "#",
-    email: "paul.biya@terravest.cm",
+    email: "ceo@terravest.cm",
   },
   {
     id: 2,
-    name: "Marie-Claire Fouda",
-    role: "Chief Investment Officer",
-    bio: "Ex-McKinsey consultant specializing in emerging market investments. MBA from INSEAD with deep expertise in African private equity.",
-    avatar: "https://ui-avatars.com/api/?name=Marie+Claire+Fouda&background=7BA391&color=fff&size=256",
+    name: "Achuo Anang Stanislaus",
+    role: "Director, Project Finance Architecture & Design",
+    bio: "Civil engineer and infrastructure specialist with a Master of Engineering from ENSTP Yaoundé. World Bank Transport Consultant contributing to the African Transport Policy Program (SSATP) across Côte d'Ivoire and beyond.",
+    avatar: "https://ui-avatars.com/api/?name=Achuo+Anang+Stanislaus&background=7BA391&color=fff&size=256",
     linkedin: "#",
     twitter: "#",
-    email: "marie-claire@terravest.cm",
+    email: "projects@terravest.cm",
   },
   {
     id: 3,
-    name: "Kofi Annan Mensah",
-    role: "Head of Operations",
-    bio: "Operations expert with experience scaling businesses across West and Central Africa. Previously led operations at Jumia Cameroon.",
-    avatar: "https://ui-avatars.com/api/?name=Kofi+Annan+Mensah&background=6B9A82&color=fff&size=256",
+    name: "Itoe Martin Ndobe",
+    role: "Risk, Compliance & Validation Expert",
+    bio: "Business law and regulatory compliance specialist with expertise in transaction structuring, land governance, customs facilitation, and tax compliance. Ensures all engagements meet the highest standards of legal integrity and risk mitigation.",
+    avatar: "https://ui-avatars.com/api/?name=Itoe+Martin+Ndobe&background=6B9A82&color=fff&size=256",
     linkedin: "#",
     twitter: "#",
-    email: "kofi@terravest.cm",
+    email: "compliance@terravest.cm",
   },
   {
     id: 4,
-    name: "Aïcha Bako",
-    role: "Chief Financial Officer",
-    bio: "Chartered accountant with expertise in cross-border transactions. Previously CFO at two successful African startups.",
-    avatar: "https://ui-avatars.com/api/?name=Aicha+Bako&background=5A8F73&color=fff&size=256",
+    name: "Nanga Nku",
+    role: "Finance & Healthcare Strategy",
+    bio: "Public health leader with dual Master's degrees in Corporate Finance and Healthcare Administration. Oversees large-scale immunization programs and multi-million-dollar federal grant portfolios with a focus on data-driven decision-making and operational excellence.",
+    avatar: "/team/nanga-nku.png",
     linkedin: "#",
     twitter: "#",
-    email: "aicha@terravest.cm",
+    email: "strategy@terravest.cm",
   },
-];
-
-const advisors = [
   {
     id: 5,
-    name: "Prof. Joseph Stiglitz",
-    role: "Economic Advisor",
-    bio: "Nobel laureate in Economics, advising on macroeconomic strategy and impact investment frameworks.",
-    avatar: "https://ui-avatars.com/api/?name=Joseph+Stiglitz&background=4A8564&color=fff&size=256",
+    name: "Kelly Hopkins Afukeze",
+    role: "Business Analyst – Junior Expert",
+    bio: "Next-generation talent at the intersection of finance, technology, and policy. Certifications from Harvard (AI, Leadership), Yale (Negotiation, Psychology), and MIT (Cybersecurity). Supports analytical and innovation-driven advisory engagements.",
+    avatar: "https://ui-avatars.com/api/?name=Kelly+Hopkins+Afukeze&background=4A8564&color=fff&size=256",
     linkedin: "#",
-  },
-  {
-    id: 6,
-    name: "Ngozi Okonjo-Iweala",
-    role: "Strategic Advisor",
-    bio: "Former Finance Minister of Nigeria and WTO Director-General, providing strategic guidance on African trade.",
-    avatar: "https://ui-avatars.com/api/?name=Ngozi+Okonjo&background=3A7B55&color=fff&size=256",
-    linkedin: "#",
+    twitter: "#",
+    email: "analytics@terravest.cm",
   },
 ];
 
@@ -113,13 +104,13 @@ export default function TeamSection() {
             Meet the Leaders
           </h2>
           <p className="text-body-lg text-[#7A7A7A] max-w-2xl mx-auto">
-            A diverse team of investment professionals, operators, and advisors 
-            committed to building Africa's future.
+            A dedicated team of professionals committed to building Africa's future 
+            through innovative finance, disciplined compliance, and data-driven advisory.
           </p>
         </div>
 
         {/* Leadership Team */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
           {teamMembers.map((member) => (
             <div
               key={member.id}
@@ -171,34 +162,10 @@ export default function TeamSection() {
               <div className="p-6">
                 <h3 className="text-lg font-semibold text-[#1A1A1A] mb-1">{member.name}</h3>
                 <p className="text-sm text-[#8FB8A3] mb-3">{member.role}</p>
-                <p className="text-sm text-[#7A7A7A] line-clamp-3">{member.bio}</p>
+                <p className="text-sm text-[#7A7A7A] line-clamp-4">{member.bio}</p>
               </div>
             </div>
           ))}
-        </div>
-
-        {/* Advisors */}
-        <div className="border-t border-[#E5E7EB] pt-16">
-          <h3 className="text-xl font-semibold text-[#1A1A1A] text-center mb-10">Strategic Advisors</h3>
-          <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
-            {advisors.map((advisor) => (
-              <div
-                key={advisor.id}
-                className="team-card flex gap-4 bg-white p-6 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300"
-              >
-                <img 
-                  src={advisor.avatar}
-                  alt={advisor.name}
-                  className="w-20 h-20 rounded-full object-cover flex-shrink-0"
-                />
-                <div>
-                  <h4 className="font-semibold text-[#1A1A1A] mb-1">{advisor.name}</h4>
-                  <p className="text-sm text-[#8FB8A3] mb-2">{advisor.role}</p>
-                  <p className="text-sm text-[#7A7A7A]">{advisor.bio}</p>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
 
         {/* Join Us CTA */}

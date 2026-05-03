@@ -18,6 +18,7 @@ export interface AdminPortfolio {
   totalInvested: number;
   totalValue: number;
   holdingsCount: number;
+  status: 'ACTIVE' | 'PENDING' | 'EXITED';
   holdings: {
     id: string;
     shares: number;

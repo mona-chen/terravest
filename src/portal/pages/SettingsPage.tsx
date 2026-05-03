@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { portalApi } from '@/lib/api';
 import { 
   Bell, 
   Mail, 
@@ -46,9 +47,15 @@ export default function SettingsPage() {
 
   const [darkMode, setDarkMode] = useState(true);
 
-  const handleNotificationChange = (key: keyof typeof notificationSettings) => {
-    setNotificationSettings(prev => ({ ...prev, [key]: !prev[key] }));
-    setSuccessMessage('Notification preferences updated');
+  const handleNotificationChange = async (key: keyof typeof notificationSettings) => {
+    const next = { ...notificationSettings, [key]: !notificationSettings[key] };
+    setNotificationSettings(next);
+    try {
+      await portalApi.updateSettings(next);
+      setSuccessMessage('Notification preferences updated');
+    } catch {
+      setSuccessMessage('Failed to update preferences');
+    }
     setShowSuccess(true);
     setTimeout(() => setShowSuccess(false), 3000);
   };
@@ -58,7 +65,7 @@ export default function SettingsPage() {
       return;
     }
     
-    const result = await changePassword();
+    const result = await changePassword(passwordData.currentPassword, passwordData.newPassword);
     
     if (result.success) {
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
